@@ -28,7 +28,6 @@
 {% set ops = campaigns | selectattr('category', 'equalto', 'Operations & Maintenance') | list %}
 {% set social = campaigns | selectattr('category', 'equalto', 'Social Programs') | list %}
 
-{% set has_samples = campaigns | selectattr('name', 'search', '\\[SAMPLE\\]') | list %}
 {% if has_samples %}
 <div class="sample-banner">
   ⚠️ <strong>Sample campaigns below</strong> — these are example campaigns added automatically. Delete them and create your own real campaigns when you're ready.
