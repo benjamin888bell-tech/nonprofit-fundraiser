@@ -67,12 +67,21 @@ class Donor(db.Model):
     email = db.Column(db.String(200))
     phone = db.Column(db.String(50))
     notes = db.Column(db.Text)
+    photo = db.Column(db.Text)            # base64-encoded uploaded photo
+    photo_mime = db.Column(db.String(50)) # e.g. "image/jpeg"
+    photo_url = db.Column(db.String(500)) # fallback URL for sample/external photos
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     donations = db.relationship("Donation", backref="donor", lazy=True)
 
     @property
     def total_given(self):
         return sum(d.amount for d in self.donations)
+
+    @property
+    def photo_src(self):
+        if self.photo and self.photo_mime:
+            return f"data:{self.photo_mime};base64,{self.photo}"
+        return self.photo_url or None
 
 
 class Donation(db.Model):
@@ -94,6 +103,15 @@ def save_photo(campaign, file):
         mime = file.content_type or "image/jpeg"
         campaign.photo = base64.b64encode(data).decode("utf-8")
         campaign.photo_mime = mime
+
+
+def save_donor_photo(donor, file):
+    """Read uploaded file and store as base64 on the donor object."""
+    if file and file.filename:
+        data = file.read()
+        mime = file.content_type or "image/jpeg"
+        donor.photo = base64.b64encode(data).decode("utf-8")
+        donor.photo_mime = mime
 
 
 # ─── Admin Routes ─────────────────────────────────────────────────────────────
@@ -196,6 +214,7 @@ def new_donor():
             phone=request.form.get("phone"),
             notes=request.form.get("notes"),
         )
+        save_donor_photo(donor, request.files.get("photo"))
         db.session.add(donor)
         db.session.commit()
         flash("Donor added!", "success")
@@ -211,6 +230,9 @@ def edit_donor(id):
         donor.email = request.form.get("email")
         donor.phone = request.form.get("phone")
         donor.notes = request.form.get("notes")
+        photo_file = request.files.get("photo")
+        if photo_file and photo_file.filename:
+            save_donor_photo(donor, photo_file)
         db.session.commit()
         flash("Donor updated!", "success")
         return redirect(url_for("donors"))
@@ -323,7 +345,19 @@ def public_campaign(id):
         .limit(10)
         .all()
     )
-    return render_template("public_campaign.html", campaign=campaign, recent=recent)
+    # Group donations by donor for bubble sizing
+    donor_map = {}
+    for d in campaign.donations:
+        key = d.donor_id if d.donor_id else f"anon_{d.id}"
+        if key not in donor_map:
+            donor_map[key] = {
+                "name": d.donor.name if d.donor else "Anonymous",
+                "total": 0,
+                "photo": d.donor.photo_src if d.donor else None,
+            }
+        donor_map[key]["total"] += d.amount
+    bubble_data = sorted(donor_map.values(), key=lambda x: x["total"], reverse=True)
+    return render_template("public_campaign.html", campaign=campaign, recent=recent, bubble_data=bubble_data)
 
 
 # ─── Seed & Init ─────────────────────────────────────────────────────────────
@@ -369,11 +403,16 @@ def seed_data():
     db.session.flush()
 
     donors = [
-        Donor(name="Alice Johnson", email="alice@example.com", phone="555-0101"),
-        Donor(name="Bob Martinez", email="bob@example.com", phone="555-0102"),
-        Donor(name="Carol White", email="carol@example.com"),
-        Donor(name="David Lee", email="david@example.com", phone="555-0104"),
-        Donor(name="Eve Chen", email="eve@example.com"),
+        Donor(name="Alice Johnson", email="alice@example.com", phone="555-0101",
+              photo_url="https://i.pravatar.cc/150?img=47"),
+        Donor(name="Bob Martinez", email="bob@example.com", phone="555-0102",
+              photo_url="https://i.pravatar.cc/150?img=33"),
+        Donor(name="Carol White", email="carol@example.com",
+              photo_url="https://i.pravatar.cc/150?img=5"),
+        Donor(name="David Lee", email="david@example.com", phone="555-0104",
+              photo_url="https://i.pravatar.cc/150?img=11"),
+        Donor(name="Eve Chen", email="eve@example.com",
+              photo_url="https://i.pravatar.cc/150?img=9"),
     ]
     db.session.add_all(donors)
     db.session.flush()
