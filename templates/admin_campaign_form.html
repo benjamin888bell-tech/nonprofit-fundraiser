@@ -96,9 +96,14 @@
                value="{{ campaign.goal if campaign else '' }}" placeholder="50000" />
       </div>
       <div class="form-group">
-        <label>Volunteer Hours Goal <span style="color:#aaa;font-weight:400">(optional)</span></label>
+        <label>⏱ Volunteer Hours Goal <span style="color:#aaa;font-weight:400">(optional)</span></label>
         <input type="number" name="hours_goal" step="0.5" min="0"
                value="{{ campaign.hours_goal if campaign and campaign.hours_goal else '' }}" placeholder="e.g. 200" />
+      </div>
+      <div class="form-group">
+        <label>🙏 Prayer Hours Goal <span style="color:#aaa;font-weight:400">(optional)</span></label>
+        <input type="number" name="prayer_goal" step="0.5" min="0"
+               value="{{ campaign.prayer_goal if campaign and campaign.prayer_goal else '' }}" placeholder="e.g. 500" />
       </div>
     </div>
     <div class="form-row">

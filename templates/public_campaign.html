@@ -32,7 +32,7 @@
     .hero-photo img { width: 100%; height: 320px; object-fit: cover; display: block; }
 
     /* ── Progress card ── */
-    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+    .container { max-width: 1020px; margin: 0 auto; padding: 0 20px; }
     .progress-card {
       background: #fff; border-radius: 20px; padding: 30px 36px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.1); margin: -28px auto 32px;
@@ -53,47 +53,71 @@
     .stat-val { font-size: 20px; font-weight: 700; }
     .stat-lbl { font-size: 12px; color: #888; margin-top: 2px; }
 
+    /* ── 3-jar grid ── */
+    .jars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 760px) {
+      .jars-grid { grid-template-columns: 1fr; }
+    }
+
     /* ── Jar section ── */
     .jar-section {
-      background: #fff; border-radius: 20px; padding: 36px 24px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 28px;
+      background: #fff; border-radius: 20px; padding: 28px 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       text-align: center;
     }
-    .jar-section-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-    .jar-section-sub { font-size: 13px; color: #888; margin-bottom: 32px; }
+    .jar-section-title { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+    .jar-section-sub { font-size: 12px; color: #888; margin-bottom: 24px; line-height: 1.5; }
+
+    /* Progress pill inside each jar section header */
+    .jar-progress-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #f5f5ff; border-radius: 99px; padding: 5px 14px;
+      font-size: 13px; font-weight: 700; margin-bottom: 20px;
+    }
+    .jar-progress-pill.vol  { background: #f0fdf4; color: #166534; }
+    .jar-progress-pill.pray { background: #fffbeb; color: #92400e; }
+    .jar-progress-bar-wrap  { background: #eee; border-radius: 99px; height: 6px; overflow: hidden; margin: 6px 12px 20px; }
+    .bar-purple { background: linear-gradient(90deg,#6c63ff,#a78bfa); }
+    .bar-green  { background: linear-gradient(90deg,#22c55e,#86efac); }
+    .bar-amber  { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
 
     /* ── The Jar ── */
     .jar-outer {
       position: relative;
-      width: 320px;
-      height: 490px;
+      width: 220px;
+      height: 340px;
       margin: 0 auto;
     }
 
     /* Lid */
     .jar-lid {
       position: absolute;
-      top: 0; left: 14px; right: 14px;
-      height: 42px;
+      top: 0; left: 10px; right: 10px;
+      height: 30px;
       background: linear-gradient(to bottom, #dde4ef 0%, #b8c2d4 45%, #8e98ae 100%);
-      border-radius: 10px 10px 4px 4px;
+      border-radius: 8px 8px 3px 3px;
       box-shadow: 0 3px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5);
       z-index: 10;
     }
     .jar-lid::after {
       content: '';
       position: absolute;
-      top: 6px; left: 20px; right: 20px;
-      height: 4px;
+      top: 5px; left: 14px; right: 14px;
+      height: 3px;
       background: rgba(255,255,255,0.4);
       border-radius: 99px;
     }
     .jar-lid-ring {
       position: absolute;
-      top: 38px; left: 8px; right: 8px;
-      height: 14px;
+      top: 27px; left: 5px; right: 5px;
+      height: 11px;
       background: linear-gradient(to bottom, #9aa4b8, #7a8499);
-      border-radius: 3px;
+      border-radius: 2px;
       z-index: 10;
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
@@ -101,32 +125,20 @@
     /* Glass body */
     .jar-body {
       position: absolute;
-      top: 50px; left: 0; right: 0; bottom: 0;
+      top: 36px; left: 0; right: 0; bottom: 0;
       background: rgba(210, 225, 255, 0.13);
       border: 3px solid rgba(150, 180, 230, 0.55);
       border-top: none;
-      border-radius: 0 0 28px 28px;
+      border-radius: 0 0 22px 22px;
       overflow: hidden;
     }
-    /* Left glass shine */
     .jar-body::before {
       content: '';
       position: absolute;
-      top: 0; bottom: 20px;
-      left: 9px; width: 10px;
+      top: 0; bottom: 14px;
+      left: 7px; width: 7px;
       background: linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.05));
-      border-radius: 5px;
-      pointer-events: none;
-      z-index: 20;
-    }
-    /* Right subtle shine */
-    .jar-body::after {
-      content: '';
-      position: absolute;
-      top: 0; bottom: 40px;
-      right: 9px; width: 5px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 3px;
+      border-radius: 4px;
       pointer-events: none;
       z-index: 20;
     }
@@ -135,59 +147,60 @@
     .jar-liquid {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      background: linear-gradient(to top,
-        rgba(108, 99, 255, 0.82) 0%,
-        rgba(108, 99, 255, 0.60) 60%,
-        rgba(167, 139, 250, 0.50) 100%
-      );
       transition: height 2s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1;
     }
+    .jar-liquid.liq-purple {
+      background: linear-gradient(to top, rgba(108,99,255,0.82) 0%, rgba(108,99,255,0.60) 60%, rgba(167,139,250,0.50) 100%);
+    }
+    .jar-liquid.liq-green {
+      background: linear-gradient(to top, rgba(34,197,94,0.82) 0%, rgba(34,197,94,0.60) 60%, rgba(134,239,172,0.50) 100%);
+    }
+    .jar-liquid.liq-amber {
+      background: linear-gradient(to top, rgba(245,158,11,0.82) 0%, rgba(245,158,11,0.60) 60%, rgba(251,191,36,0.50) 100%);
+    }
+
     /* Wave on liquid surface */
     .jar-wave {
       position: absolute;
-      top: -8px; left: -20px; right: -20px;
-      height: 18px;
+      top: -7px; left: -16px; right: -16px;
+      height: 14px;
       background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(167,139,250,0.6) 0%, transparent 100%);
       border-radius: 50%;
       animation: waveAnim 3s ease-in-out infinite;
     }
+    .liq-green .jar-wave  { background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(134,239,172,0.7) 0%, transparent 100%); }
+    .liq-amber .jar-wave  { background: radial-gradient(ellipse 60% 100% at 50% 0%, rgba(251,191,36,0.7)  0%, transparent 100%); }
 
-    /* Bubbles layer — sits on top of liquid */
-    #bubbles-layer {
+    #bubbles-layer, #vol-bubbles-layer, #pray-bubbles-layer {
       position: absolute;
       inset: 0;
       z-index: 5;
     }
 
-    /* Individual donor bubble */
     .donor-bubble {
       position: absolute;
       border-radius: 50%;
       overflow: hidden;
-      border: 2.5px solid rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.85);
       box-shadow:
-        inset -3px -3px 10px rgba(0, 0, 0, 0.18),
-        inset 3px 3px 8px rgba(255, 255, 255, 0.5),
-        0 2px 8px rgba(0,0,0,0.15);
+        inset -2px -2px 8px rgba(0,0,0,0.18),
+        inset 2px 2px 6px rgba(255,255,255,0.5),
+        0 2px 6px rgba(0,0,0,0.15);
       cursor: pointer;
       z-index: 5;
       transition: box-shadow 0.2s;
     }
     .donor-bubble:hover {
       box-shadow:
-        inset -3px -3px 10px rgba(0,0,0,0.15),
-        inset 3px 3px 8px rgba(255,255,255,0.6),
-        0 0 0 3px rgba(255,255,255,0.9),
-        0 0 0 5px rgba(108,99,255,0.5),
-        0 4px 16px rgba(0,0,0,0.2);
+        inset -2px -2px 8px rgba(0,0,0,0.15),
+        inset 2px 2px 6px rgba(255,255,255,0.6),
+        0 0 0 2px rgba(255,255,255,0.9),
+        0 0 0 4px rgba(108,99,255,0.5),
+        0 4px 12px rgba(0,0,0,0.2);
       z-index: 50;
     }
-    .donor-bubble img {
-      width: 100%; height: 100%;
-      object-fit: cover; display: block;
-      pointer-events: none;
-    }
+    .donor-bubble img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
     .bubble-initial {
       width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
@@ -206,77 +219,67 @@
       transform: rotate(-20deg);
     }
 
-    /* Bubble float animations */
     @keyframes float-a {
       0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      30% { transform: translate(3px, -7px) rotate(1.5deg); }
-      60% { transform: translate(-2px, -11px) rotate(-1deg); }
-      80% { transform: translate(4px, -5px) rotate(0.5deg); }
+      30% { transform: translate(3px, -6px) rotate(1.5deg); }
+      60% { transform: translate(-2px, -9px) rotate(-1deg); }
+      80% { transform: translate(3px, -4px) rotate(0.5deg); }
     }
     @keyframes float-b {
       0%, 100% { transform: translate(0, 0); }
-      40% { transform: translate(-4px, -9px); }
-      70% { transform: translate(2px, -6px); }
+      40% { transform: translate(-3px, -7px); }
+      70% { transform: translate(2px, -5px); }
     }
     @keyframes float-c {
       0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      50% { transform: translate(3px, -8px) rotate(-2deg); }
+      50% { transform: translate(2px, -6px) rotate(-2deg); }
     }
     @keyframes waveAnim {
       0%, 100% { transform: translateX(0) scaleY(1); }
-      50% { transform: translateX(8px) scaleY(1.3); }
+      50% { transform: translateX(6px) scaleY(1.3); }
     }
 
     /* Tooltip */
     #bubble-tooltip {
       position: fixed;
       background: rgba(26,26,46,0.94);
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      pointer-events: none;
-      z-index: 1000;
-      display: none;
-      white-space: nowrap;
+      color: #fff; padding: 7px 12px; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      pointer-events: none; z-index: 1000;
+      display: none; white-space: nowrap;
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     }
     #bubble-tooltip span { color: #a78bfa; }
+    #bubble-tooltip .tt-green  { color: #4ade80; }
+    #bubble-tooltip .tt-amber  { color: #fbbf24; }
 
     /* Tier legend */
     .tier-legend {
-      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-      margin-top: 24px;
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+      margin-top: 16px;
     }
-    .tier-item {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: #666;
-    }
-    .tier-dot {
-      border-radius: 50%;
-      background: rgba(108,99,255,0.5);
-      border: 2px solid rgba(255,255,255,0.8);
-      flex-shrink: 0;
-    }
+    .tier-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; }
+    .tier-dot { border-radius: 50%; background: rgba(108,99,255,0.5); border: 2px solid rgba(255,255,255,0.8); flex-shrink: 0; }
 
     /* ── Recent donations ── */
     .card { background: #fff; border-radius: 16px; padding: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 24px; }
     .section-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
     .recent-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 0; border-bottom: 1px solid #f0f0f8;
+      padding: 12px 0; border-bottom: 1px solid #f0f0f8;
     }
     .recent-item:last-child { border-bottom: none; }
     .ri-name { font-weight: 600; font-size: 14px; }
     .ri-date { font-size: 12px; color: #999; margin-top: 2px; }
-    .ri-amount { font-size: 18px; font-weight: 700; color: #22c55e; }
+    .ri-amount { font-size: 17px; font-weight: 700; color: #22c55e; }
     .ri-note { font-size: 12px; color: #888; margin-top: 2px; text-align: right; }
+    .pill-vol   { display:inline-block;background:#f0fdf4;color:#166534;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700; }
+    .pill-pray  { display:inline-block;background:#fffbeb;color:#92400e;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700; }
 
     /* Encouragement banner */
     .encourage-banner {
-      border-radius: 12px; padding: 14px 20px; margin-bottom: 20px;
-      font-size: 15px; font-weight: 700; text-align: center; letter-spacing: 0.2px;
+      border-radius: 12px; padding: 12px 18px; margin-bottom: 20px;
+      font-size: 14px; font-weight: 700; text-align: center; letter-spacing: 0.2px;
     }
     .enc-spark   { background: #fef9c3; color: #854d0e; }
     .enc-grow    { background: #dbeafe; color: #1e40af; }
@@ -366,79 +369,121 @@
         <div class="stat-lbl">End Date</div>
       </div>
       {% endif %}
-      <div class="stat-item">
-        <div class="stat-val">${{ "{:,.0f}".format(campaign.total_raised / campaign.donations|length) if campaign.donations else 0 }}</div>
-        <div class="stat-lbl">Avg Gift</div>
-      </div>
       {% if campaign.hours_goal %}
       <div class="stat-item">
-        <div class="stat-val" style="color:#6c63ff">{{ campaign.total_hours|int }}</div>
-        <div class="stat-lbl">Hours Pledged</div>
+        <div class="stat-val" style="color:#22c55e">{{ campaign.total_hours|int }}</div>
+        <div class="stat-lbl">⏱ Vol. Hours</div>
+      </div>
+      {% endif %}
+      {% if campaign.prayer_goal %}
+      <div class="stat-item">
+        <div class="stat-val" style="color:#f59e0b">{{ campaign.total_prayer_hours|int }}</div>
+        <div class="stat-lbl">🙏 Prayer Hrs</div>
       </div>
       {% endif %}
     </div>
   </div>
 
-  <!-- Jar Section -->
-  <div class="jar-section">
-    <div class="jar-section-title">Our Generous Supporters 💜</div>
-    <div class="jar-section-sub">
-      Each bubble represents a donor — bigger bubble = bigger gift!<br>
-      Hover over a bubble to see who it is.
-    </div>
+  <!-- 3 Jar Sections -->
+  <div class="jars-grid">
 
-    {% if bubble_data %}
-    <!-- The Jar -->
-    <div class="jar-outer">
-      <div class="jar-lid"></div>
-      <div class="jar-lid-ring"></div>
-      <div class="jar-body">
-        <div class="jar-liquid" id="jarLiquid">
-          <div class="jar-wave"></div>
-        </div>
-        <div id="bubbles-layer"></div>
+    <!-- JAR 1: Donations (purple) -->
+    <div class="jar-section">
+      <div class="jar-section-title">💜 Donations</div>
+      <div class="jar-section-sub">
+        Each bubble = one donor<br>Bigger bubble = bigger gift
       </div>
+      {% if bubble_data %}
+      <div class="jar-progress-pill">
+        ${{ "{:,.0f}".format(campaign.total_raised) }} raised &nbsp;·&nbsp; {{ campaign.progress_pct }}%
+      </div>
+      <div class="jar-progress-bar-wrap">
+        <div class="bar-purple" style="height:100%;border-radius:99px;width:{{ campaign.progress_pct }}%"></div>
+      </div>
+      <div class="jar-outer">
+        <div class="jar-lid"></div>
+        <div class="jar-lid-ring"></div>
+        <div class="jar-body">
+          <div class="jar-liquid liq-purple" id="jarLiquid"><div class="jar-wave"></div></div>
+          <div id="bubbles-layer"></div>
+        </div>
+      </div>
+      <div class="tier-legend">
+        <div class="tier-item"><div class="tier-dot" style="width:10px;height:10px"></div> Small</div>
+        <div class="tier-item"><div class="tier-dot" style="width:14px;height:14px"></div> Medium</div>
+        <div class="tier-item"><div class="tier-dot" style="width:20px;height:20px"></div> Large</div>
+        <div class="tier-item"><div class="tier-dot" style="width:26px;height:26px"></div> Major</div>
+        <div class="tier-item"><div class="tier-dot" style="width:32px;height:32px"></div> Lead</div>
+      </div>
+      {% else %}
+      <div style="padding:40px 0;color:#aaa;font-size:14px"><div style="font-size:40px;margin-bottom:10px">🫙</div>No donations yet</div>
+      {% endif %}
     </div>
 
-    <!-- Tier legend -->
-    <div class="tier-legend">
-      <div class="tier-item"><div class="tier-dot" style="width:12px;height:12px"></div> Small gift</div>
-      <div class="tier-item"><div class="tier-dot" style="width:18px;height:18px"></div> Medium</div>
-      <div class="tier-item"><div class="tier-dot" style="width:24px;height:24px"></div> Large</div>
-      <div class="tier-item"><div class="tier-dot" style="width:30px;height:30px"></div> Major</div>
-      <div class="tier-item"><div class="tier-dot" style="width:38px;height:38px"></div> Transformational</div>
+    <!-- JAR 2: Volunteer Hours (green) -->
+    <div class="jar-section">
+      <div class="jar-section-title">💚 Volunteer Hours</div>
+      <div class="jar-section-sub">
+        Each bubble = one volunteer<br>Bigger bubble = more hours
+      </div>
+      {% if campaign.hours_goal %}
+      <div class="jar-progress-pill vol">
+        {{ campaign.total_hours|int }} hrs pledged &nbsp;·&nbsp; {{ campaign.hours_progress_pct }}%
+      </div>
+      <div class="jar-progress-bar-wrap">
+        <div class="bar-green" style="height:100%;border-radius:99px;width:{{ campaign.hours_progress_pct }}%"></div>
+      </div>
+      {% endif %}
+      {% if vol_bubble_data %}
+      <div class="jar-outer">
+        <div class="jar-lid"></div>
+        <div class="jar-lid-ring"></div>
+        <div class="jar-body">
+          <div class="jar-liquid liq-green" id="volJarLiquid"><div class="jar-wave"></div></div>
+          <div id="vol-bubbles-layer"></div>
+        </div>
+      </div>
+      {% else %}
+      <div style="padding:40px 0;color:#aaa;font-size:14px"><div style="font-size:40px;margin-bottom:10px">🫙</div>No hours pledged yet</div>
+      {% endif %}
     </div>
 
-    {% else %}
-    <div style="text-align:center;padding:60px 0;color:#aaa;font-size:15px">
-      <div style="font-size:48px;margin-bottom:12px">🫙</div>
-      No donations yet — be the first to add your bubble!
+    <!-- JAR 3: Prayer Hours (amber/gold) -->
+    <div class="jar-section">
+      <div class="jar-section-title">🙏 Prayer Hours</div>
+      <div class="jar-section-sub">
+        Each bubble = one prayer partner<br>Bigger bubble = more hours
+      </div>
+      {% if campaign.prayer_goal %}
+      <div class="jar-progress-pill pray">
+        {{ campaign.total_prayer_hours|int }} hrs pledged &nbsp;·&nbsp; {{ campaign.prayer_progress_pct }}%
+      </div>
+      <div class="jar-progress-bar-wrap">
+        <div class="bar-amber" style="height:100%;border-radius:99px;width:{{ campaign.prayer_progress_pct }}%"></div>
+      </div>
+      {% endif %}
+      {% if prayer_bubble_data %}
+      <div class="jar-outer">
+        <div class="jar-lid"></div>
+        <div class="jar-lid-ring"></div>
+        <div class="jar-body">
+          <div class="jar-liquid liq-amber" id="prayJarLiquid"><div class="jar-wave"></div></div>
+          <div id="pray-bubbles-layer"></div>
+        </div>
+      </div>
+      {% else %}
+      <div style="padding:40px 0;color:#aaa;font-size:14px"><div style="font-size:40px;margin-bottom:10px">🙏</div>No prayer hours yet</div>
+      {% endif %}
     </div>
-    {% endif %}
-  </div>
 
+  </div><!-- /jars-grid -->
+
+  <!-- Volunteer hour pledgers -->
   {% if campaign.hours_goal %}
-  <!-- Volunteer Hours Section -->
   <div class="card">
-    <div class="section-title">⏱ Volunteer Hours</div>
-    <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px;flex-wrap:wrap">
-      <div>
-        <div style="font-size:36px;font-weight:800;color:#6c63ff;line-height:1">{{ campaign.total_hours|int }}</div>
-        <div style="font-size:13px;color:#888;margin-top:3px">hours pledged of {{ campaign.hours_goal|int }} goal</div>
-      </div>
-      <div style="flex:1;min-width:160px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px">
-          <span>Progress</span>
-          <span style="font-weight:700;color:#6c63ff">{{ campaign.hours_progress_pct }}%</span>
-        </div>
-        <div style="background:#ede9fe;border-radius:99px;height:10px;overflow:hidden">
-          <div style="height:100%;border-radius:99px;background:linear-gradient(90deg,#6c63ff,#a78bfa);width:{{ campaign.hours_progress_pct }}%"></div>
-        </div>
-      </div>
-    </div>
+    <div class="section-title">⏱ Volunteer Hour Pledgers</div>
     {% set hour_pledges = campaign.donations | selectattr('hours_pledged') | list %}
     {% if hour_pledges %}
-    <div style="font-size:13px;font-weight:600;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Hour Pledgers</div>
     {% for d in hour_pledges %}
     <div class="recent-item">
       <div>
@@ -446,7 +491,7 @@
         <div class="ri-date">{{ d.date.strftime('%B %d, %Y') }}</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:18px;font-weight:700;color:#6c63ff">{{ d.hours_pledged|int }} hrs</div>
+        <span class="pill-vol">{{ d.hours_pledged|int }} hrs</span>
         {% if d.note %}<div class="ri-note">{{ d.note }}</div>{% endif %}
       </div>
     </div>
@@ -457,9 +502,33 @@
   </div>
   {% endif %}
 
+  <!-- Prayer hour pledgers -->
+  {% if campaign.prayer_goal %}
+  <div class="card">
+    <div class="section-title">🙏 Prayer Hour Pledgers</div>
+    {% set prayer_pledges = campaign.donations | selectattr('prayer_hours') | list %}
+    {% if prayer_pledges %}
+    {% for d in prayer_pledges %}
+    <div class="recent-item">
+      <div>
+        <div class="ri-name">{{ d.donor.name if d.donor else 'Anonymous' }}</div>
+        <div class="ri-date">{{ d.date.strftime('%B %d, %Y') }}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="pill-pray">🙏 {{ d.prayer_hours|int }} hrs</span>
+        {% if d.note %}<div class="ri-note">{{ d.note }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:#aaa;text-align:center;padding:16px">No prayer hours pledged yet — join us in prayer!</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- Recent donations -->
   <div class="card">
-    <div class="section-title">Recent Donations</div>
+    <div class="section-title">Recent Activity</div>
     {% if recent %}
     {% for d in recent %}
     <div class="recent-item">
@@ -467,17 +536,16 @@
         <div class="ri-name">{{ d.donor.name if d.donor else 'Anonymous Donor' }}</div>
         <div class="ri-date">{{ d.date.strftime('%B %d, %Y') }}</div>
       </div>
-      <div style="text-align:right">
-        {% if d.amount > 0 %}
-        <div class="ri-amount">${{ "{:,.0f}".format(d.amount) }}</div>
-        {% endif %}
-        {% if d.hours_pledged %}<div style="font-size:15px;font-weight:600;color:#6c63ff">{{ d.hours_pledged|int }} hrs</div>{% endif %}
+      <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        {% if d.amount > 0 %}<div class="ri-amount">${{ "{:,.0f}".format(d.amount) }}</div>{% endif %}
+        {% if d.hours_pledged %}<span class="pill-vol">⏱ {{ d.hours_pledged|int }} hrs</span>{% endif %}
+        {% if d.prayer_hours %}<span class="pill-pray">🙏 {{ d.prayer_hours|int }} hrs</span>{% endif %}
         {% if d.note %}<div class="ri-note">{{ d.note }}</div>{% endif %}
       </div>
     </div>
     {% endfor %}
     {% else %}
-    <p style="color:#aaa;text-align:center;padding:24px">No donations recorded yet.</p>
+    <p style="color:#aaa;text-align:center;padding:24px">No activity recorded yet.</p>
     {% endif %}
   </div>
 
@@ -488,140 +556,137 @@
 
 <script>
 (function() {
-  const bubbleData = {{ bubble_data | tojson }};
-  const progress   = {{ campaign.progress_pct }};
-  if (!bubbleData.length) return;
-
-  // Jar interior dimensions (matches CSS: 320px wide body, 3px border each side)
-  const JAR_W = 314;
-  const JAR_H = 440;
-  const PAD   = 6;  // px clearance from jar walls
-
-  // ── 5 size tiers ──────────────────────────────────────────────
-  const amounts = bubbleData.map(b => b.total);
-  const maxAmt  = Math.max(...amounts, 1);
-  function getRadius(amount) {
-    const pct = amount / maxAmt;
-    if (pct > 0.80) return 46;
-    if (pct > 0.55) return 36;
-    if (pct > 0.35) return 27;
-    if (pct > 0.15) return 19;
-    return 13;
-  }
-
-  // ── Compute minimum liquid height to fit all bubbles ──────────
-  // Sum of bubble areas × packing overhead factor (~1.7)
-  const totalArea = bubbleData.reduce((s, b) => {
-    const r = getRadius(b.total);
-    return s + Math.PI * r * r;
-  }, 0);
-  const minLiquidH = Math.ceil((totalArea * 1.7) / (JAR_W - PAD * 2)) + PAD * 4;
-  const rawLiquidH = JAR_H * (progress / 100);
-  const liquidH    = Math.max(rawLiquidH, minLiquidH, 60);
-  const liquidTop  = JAR_H - liquidH;
-
-  document.getElementById('jarLiquid').style.height = liquidH + 'px';
-
-  // ── Physics-based placement (force repulsion) ─────────────────
-  // Initialise nodes with random positions inside liquid area
-  const nodes = bubbleData.map(b => {
-    const r = getRadius(b.total);
-    return {
-      donor: b,
-      r,
-      cx: PAD + r + Math.random() * (JAR_W - PAD * 2 - r * 2),
-      cy: liquidTop + PAD + r + Math.random() * (liquidH - PAD * 2 - r * 2),
-      vx: 0,
-      vy: 0
-    };
-  });
-
-  // Run repulsion iterations until no overlaps remain (max 400)
-  for (let iter = 0; iter < 400; iter++) {
-    let moved = false;
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j];
-        const dx = b.cx - a.cx;
-        const dy = b.cy - a.cy;
-        const dist   = Math.sqrt(dx * dx + dy * dy) || 0.01;
-        const minD   = a.r + b.r + 4;  // 4px gap between bubbles
-        if (dist < minD) {
-          const push = (minD - dist) / dist * 0.55;
-          const fx = dx * push, fy = dy * push;
-          a.cx -= fx; a.cy -= fy;
-          b.cx += fx; b.cy += fy;
-          moved = true;
-        }
-      }
-      // Keep inside liquid bounds
-      const n = nodes[i];
-      n.cx = Math.max(PAD + n.r, Math.min(JAR_W - PAD - n.r, n.cx));
-      n.cy = Math.max(liquidTop + PAD + n.r, Math.min(JAR_H - PAD - n.r, n.cy));
-    }
-    if (!moved) break;
-  }
-
-  // ── Render bubbles ─────────────────────────────────────────────
-  const floatAnims = ['float-a', 'float-b', 'float-c'];
-  const durations  = [3.5, 4.2, 5.0, 3.8, 4.6, 5.5, 3.2];
-  const delays     = [0, 0.7, 1.4, 2.1, 0.35, 1.05, 1.75, 2.45, 0.55, 1.25];
-
-  const layer   = document.getElementById('bubbles-layer');
   const tooltip = document.getElementById('bubble-tooltip');
 
-  nodes.forEach((node, i) => {
-    const { donor, r, cx, cy } = node;
-    const bubble = document.createElement('div');
-    bubble.className = 'donor-bubble';
-    const anim = floatAnims[i % floatAnims.length];
-    const dur  = durations[i % durations.length];
-    const del  = delays[i % delays.length];
-    bubble.style.cssText = `
-      left:   ${cx - r}px;
-      top:    ${cy - r}px;
-      width:  ${r * 2}px;
-      height: ${r * 2}px;
-      animation: ${anim} ${dur}s ease-in-out -${del}s infinite;
-    `;
+  // ── Shared jar renderer ────────────────────────────────────────────────────
+  // liquidId: id of .jar-liquid div
+  // layerId:  id of bubbles layer div
+  // data:     [{name, total, photo}, ...]
+  // progress: 0-100
+  // colorClass: 'tt-purple' | 'tt-green' | 'tt-amber'
+  // unit:     '$' | 'hrs'
+  function renderJar(liquidId, layerId, data, progress, colorClass, unit) {
+    if (!data.length) return;
 
-    if (donor.photo) {
-      const img = document.createElement('img');
-      img.src   = donor.photo;
-      img.alt   = donor.name;
-      img.onerror = () => { img.remove(); addInitial(bubble, donor.name, r); };
-      bubble.appendChild(img);
-    } else {
-      addInitial(bubble, donor.name, r);
+    const JAR_W = 214;  // 220px outer - 3px border x2
+    const JAR_H = 304;  // 340px outer - 36px lid
+    const PAD   = 5;
+
+    const amounts = data.map(b => b.total);
+    const maxAmt  = Math.max(...amounts, 1);
+    function getRadius(v) {
+      const pct = v / maxAmt;
+      if (pct > 0.80) return 34;
+      if (pct > 0.55) return 26;
+      if (pct > 0.35) return 19;
+      if (pct > 0.15) return 13;
+      return 9;
     }
 
-    const shine = document.createElement('div');
-    shine.className = 'bubble-shine';
-    bubble.appendChild(shine);
+    // Min liquid height based on total bubble area
+    const totalArea = data.reduce((s, b) => s + Math.PI * getRadius(b.total) ** 2, 0);
+    const minLiquidH = Math.ceil((totalArea * 1.7) / (JAR_W - PAD * 2)) + PAD * 4;
+    const rawLiquidH = JAR_H * (progress / 100);
+    const liquidH    = Math.max(rawLiquidH, minLiquidH, 50);
+    const liquidTop  = JAR_H - liquidH;
 
-    bubble.addEventListener('mouseenter', e => {
-      tooltip.innerHTML = donor.name + ' &nbsp;<span>$' + donor.total.toLocaleString() + '</span>';
-      tooltip.style.display = 'block';
-      positionTooltip(e);
+    document.getElementById(liquidId).style.height = liquidH + 'px';
+
+    // Physics placement
+    const nodes = data.map(b => {
+      const r = getRadius(b.total);
+      return {
+        donor: b, r,
+        cx: PAD + r + Math.random() * (JAR_W - PAD * 2 - r * 2),
+        cy: liquidTop + PAD + r + Math.random() * (liquidH - PAD * 2 - r * 2),
+      };
     });
-    bubble.addEventListener('mousemove',  positionTooltip);
-    bubble.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 
-    layer.appendChild(bubble);
-  });
+    for (let iter = 0; iter < 400; iter++) {
+      let moved = false;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = b.cx - a.cx, dy = b.cy - a.cy;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+          const minD = a.r + b.r + 3;
+          if (dist < minD) {
+            const push = (minD - dist) / dist * 0.55;
+            a.cx -= dx * push; a.cy -= dy * push;
+            b.cx += dx * push; b.cy += dy * push;
+            moved = true;
+          }
+        }
+        const n = nodes[i];
+        n.cx = Math.max(PAD + n.r, Math.min(JAR_W - PAD - n.r, n.cx));
+        n.cy = Math.max(liquidTop + PAD + n.r, Math.min(JAR_H - PAD - n.r, n.cy));
+      }
+      if (!moved) break;
+    }
+
+    const anims = ['float-a', 'float-b', 'float-c'];
+    const durs  = [3.5, 4.2, 5.0, 3.8, 4.6, 5.5, 3.2];
+    const dels  = [0, 0.7, 1.4, 2.1, 0.35, 1.05, 1.75, 2.45];
+    const layer = document.getElementById(layerId);
+
+    nodes.forEach((node, i) => {
+      const { donor, r, cx, cy } = node;
+      const bubble = document.createElement('div');
+      bubble.className = 'donor-bubble';
+      bubble.style.cssText = `
+        left:${cx - r}px; top:${cy - r}px;
+        width:${r * 2}px; height:${r * 2}px;
+        animation:${anims[i % anims.length]} ${durs[i % durs.length]}s ease-in-out -${dels[i % dels.length]}s infinite;
+      `;
+      if (donor.photo) {
+        const img = document.createElement('img');
+        img.src = donor.photo; img.alt = donor.name;
+        img.onerror = () => { img.remove(); addInitial(bubble, donor.name, r); };
+        bubble.appendChild(img);
+      } else {
+        addInitial(bubble, donor.name, r);
+      }
+      const shine = document.createElement('div');
+      shine.className = 'bubble-shine';
+      bubble.appendChild(shine);
+
+      const dispVal = unit === '$'
+        ? '$' + donor.total.toLocaleString()
+        : donor.total + ' hrs';
+
+      bubble.addEventListener('mouseenter', e => {
+        tooltip.innerHTML = donor.name + ' &nbsp;<span class="' + colorClass + '">' + dispVal + '</span>';
+        tooltip.style.display = 'block';
+        posTooltip(e);
+      });
+      bubble.addEventListener('mousemove', posTooltip);
+      bubble.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+      layer.appendChild(bubble);
+    });
+  }
 
   function addInitial(parent, name, r) {
     const el = document.createElement('div');
     el.className = 'bubble-initial';
-    el.style.fontSize = Math.max(r * 0.65, 9) + 'px';
+    el.style.fontSize = Math.max(r * 0.65, 8) + 'px';
     el.textContent = name.charAt(0).toUpperCase();
     parent.appendChild(el);
   }
 
-  function positionTooltip(e) {
+  function posTooltip(e) {
     tooltip.style.left = (e.clientX + 12) + 'px';
     tooltip.style.top  = (e.clientY - 36) + 'px';
   }
+
+  // ── Render each jar ────────────────────────────────────────────────────────
+  const donationData = {{ bubble_data | tojson }};
+  const volData      = {{ vol_bubble_data | tojson }};
+  const prayData     = {{ prayer_bubble_data | tojson }};
+
+  renderJar('jarLiquid',     'bubbles-layer',      donationData, {{ campaign.progress_pct }},        'tt-purple', '$');
+  renderJar('volJarLiquid',  'vol-bubbles-layer',  volData,      {{ campaign.hours_progress_pct }},  'tt-green',  'hrs');
+  renderJar('prayJarLiquid', 'pray-bubbles-layer', prayData,     {{ campaign.prayer_progress_pct }}, 'tt-amber',  'hrs');
+
 })();
 </script>
 

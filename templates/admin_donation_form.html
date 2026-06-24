@@ -13,16 +13,20 @@
 <div class="card" style="max-width:560px">
   <form method="post">
     <div style="background:#f0f4ff;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#444;">
-      💡 Fill in a <strong>dollar amount</strong>, <strong>hours pledged</strong>, or both. At least one is required.
+      💡 Fill in any combination of <strong>dollar amount</strong>, <strong>volunteer hours</strong>, or <strong>prayer hours</strong>. At least one is required.
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Amount ($) <span style="color:#aaa;font-weight:400">optional if hours given</span></label>
+        <label>💵 Amount ($)</label>
         <input type="number" name="amount" step="0.01" min="0" placeholder="500.00" />
       </div>
       <div class="form-group">
-        <label>Hours Pledged <span style="color:#aaa;font-weight:400">optional if amount given</span></label>
+        <label>⏱ Volunteer Hours</label>
         <input type="number" name="hours_pledged" step="0.5" min="0" placeholder="e.g. 10" />
+      </div>
+      <div class="form-group">
+        <label>🙏 Prayer Hours</label>
+        <input type="number" name="prayer_hours" step="0.5" min="0" placeholder="e.g. 30" />
       </div>
     </div>
     <div class="form-row">

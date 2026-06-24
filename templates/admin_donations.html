@@ -18,7 +18,8 @@
         <tr>
           <th>Date</th>
           <th>Amount</th>
-          <th>Hours</th>
+          <th>Vol. Hours</th>
+          <th>🙏 Prayer</th>
           <th>Donor</th>
           <th>Campaign</th>
           <th>Note</th>
@@ -38,6 +39,13 @@
           <td>
             {% if d.hours_pledged %}
               <strong style="color:#6c63ff;font-size:15px">{{ d.hours_pledged|int }}h</strong>
+            {% else %}
+              <span style="color:#aaa">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if d.prayer_hours %}
+              <strong style="color:#d97706;font-size:15px">{{ d.prayer_hours|int }}h</strong>
             {% else %}
               <span style="color:#aaa">—</span>
             {% endif %}
