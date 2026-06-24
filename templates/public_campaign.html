@@ -440,117 +440,133 @@
 <script>
 (function() {
   const bubbleData = {{ bubble_data | tojson }};
-  const progress = {{ campaign.progress_pct }};
-
+  const progress   = {{ campaign.progress_pct }};
   if (!bubbleData.length) return;
 
-  // Jar body interior dimensions (matches CSS)
-  // jar-body: top=50px, height = 490-50 = 440px, width = 320px
-  // But border is 3px, so interior = 314 x 440
+  // Jar interior dimensions (matches CSS: 320px wide body, 3px border each side)
   const JAR_W = 314;
   const JAR_H = 440;
-  const liquidH = Math.max(JAR_H * (progress / 100), 40); // at least 40px so bubbles have room
-  const liquidTop = JAR_H - liquidH; // px from top of jar-body where liquid starts
+  const PAD   = 6;  // px clearance from jar walls
 
-  // Set liquid height
-  document.getElementById('jarLiquid').style.height = liquidH + 'px';
-
-  // 5 size tiers: radius in px
+  // ── 5 size tiers ──────────────────────────────────────────────
   const amounts = bubbleData.map(b => b.total);
-  const maxAmt = Math.max(...amounts, 1);
+  const maxAmt  = Math.max(...amounts, 1);
   function getRadius(amount) {
     const pct = amount / maxAmt;
-    if (pct > 0.80) return 48;
-    if (pct > 0.55) return 38;
-    if (pct > 0.35) return 29;
-    if (pct > 0.15) return 21;
-    return 14;
+    if (pct > 0.80) return 46;
+    if (pct > 0.55) return 36;
+    if (pct > 0.35) return 27;
+    if (pct > 0.15) return 19;
+    return 13;
   }
 
-  // Float animation classes
-  const floatAnims = ['float-a', 'float-b', 'float-c'];
-  const durations = [3.5, 4.2, 5.0, 3.8, 4.6, 5.5, 3.2];
-  const delays    = [0, 0.6, 1.2, 1.8, 2.4, 0.3, 0.9, 1.5, 2.1, 2.7];
+  // ── Compute minimum liquid height to fit all bubbles ──────────
+  // Sum of bubble areas × packing overhead factor (~1.7)
+  const totalArea = bubbleData.reduce((s, b) => {
+    const r = getRadius(b.total);
+    return s + Math.PI * r * r;
+  }, 0);
+  const minLiquidH = Math.ceil((totalArea * 1.7) / (JAR_W - PAD * 2)) + PAD * 4;
+  const rawLiquidH = JAR_H * (progress / 100);
+  const liquidH    = Math.max(rawLiquidH, minLiquidH, 60);
+  const liquidTop  = JAR_H - liquidH;
 
-  const placed = [];
-  const layer = document.getElementById('bubbles-layer');
+  document.getElementById('jarLiquid').style.height = liquidH + 'px';
+
+  // ── Physics-based placement (force repulsion) ─────────────────
+  // Initialise nodes with random positions inside liquid area
+  const nodes = bubbleData.map(b => {
+    const r = getRadius(b.total);
+    return {
+      donor: b,
+      r,
+      cx: PAD + r + Math.random() * (JAR_W - PAD * 2 - r * 2),
+      cy: liquidTop + PAD + r + Math.random() * (liquidH - PAD * 2 - r * 2),
+      vx: 0,
+      vy: 0
+    };
+  });
+
+  // Run repulsion iterations until no overlaps remain (max 400)
+  for (let iter = 0; iter < 400; iter++) {
+    let moved = false;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i], b = nodes[j];
+        const dx = b.cx - a.cx;
+        const dy = b.cy - a.cy;
+        const dist   = Math.sqrt(dx * dx + dy * dy) || 0.01;
+        const minD   = a.r + b.r + 4;  // 4px gap between bubbles
+        if (dist < minD) {
+          const push = (minD - dist) / dist * 0.55;
+          const fx = dx * push, fy = dy * push;
+          a.cx -= fx; a.cy -= fy;
+          b.cx += fx; b.cy += fy;
+          moved = true;
+        }
+      }
+      // Keep inside liquid bounds
+      const n = nodes[i];
+      n.cx = Math.max(PAD + n.r, Math.min(JAR_W - PAD - n.r, n.cx));
+      n.cy = Math.max(liquidTop + PAD + n.r, Math.min(JAR_H - PAD - n.r, n.cy));
+    }
+    if (!moved) break;
+  }
+
+  // ── Render bubbles ─────────────────────────────────────────────
+  const floatAnims = ['float-a', 'float-b', 'float-c'];
+  const durations  = [3.5, 4.2, 5.0, 3.8, 4.6, 5.5, 3.2];
+  const delays     = [0, 0.7, 1.4, 2.1, 0.35, 1.05, 1.75, 2.45, 0.55, 1.25];
+
+  const layer   = document.getElementById('bubbles-layer');
   const tooltip = document.getElementById('bubble-tooltip');
 
-  bubbleData.forEach((donor, i) => {
-    const r = getRadius(donor.total);
-
-    // Only place bubbles in the liquid area of the jar body
-    const minX = r + 5;
-    const maxX = JAR_W - r - 5;
-    const minY = liquidTop + r + 4;
-    const maxY = JAR_H - r - 6;
-
-    if (minY >= maxY) return; // not enough liquid space for this bubble
-
-    // Find a non-overlapping spot (100 attempts)
-    let cx, cy, tries = 0;
-    do {
-      cx = minX + Math.random() * (maxX - minX);
-      cy = minY + Math.random() * (maxY - minY);
-      tries++;
-    } while (
-      tries < 100 &&
-      placed.some(p => {
-        const dx = p.cx - cx, dy = p.cy - cy;
-        return Math.sqrt(dx * dx + dy * dy) < p.r + r + 5;
-      })
-    );
-
-    placed.push({ cx, cy, r });
-
-    // Build the bubble div
+  nodes.forEach((node, i) => {
+    const { donor, r, cx, cy } = node;
     const bubble = document.createElement('div');
     bubble.className = 'donor-bubble';
     const anim = floatAnims[i % floatAnims.length];
     const dur  = durations[i % durations.length];
     const del  = delays[i % delays.length];
     bubble.style.cssText = `
-      left: ${cx - r}px;
-      top:  ${cy - r}px;
+      left:   ${cx - r}px;
+      top:    ${cy - r}px;
       width:  ${r * 2}px;
       height: ${r * 2}px;
       animation: ${anim} ${dur}s ease-in-out -${del}s infinite;
     `;
 
-    // Photo or initial
     if (donor.photo) {
       const img = document.createElement('img');
-      img.src = donor.photo;
-      img.alt = donor.name;
+      img.src   = donor.photo;
+      img.alt   = donor.name;
       img.onerror = () => { img.remove(); addInitial(bubble, donor.name, r); };
       bubble.appendChild(img);
     } else {
       addInitial(bubble, donor.name, r);
     }
 
-    // Shine highlight
     const shine = document.createElement('div');
     shine.className = 'bubble-shine';
     bubble.appendChild(shine);
 
-    // Tooltip events
-    bubble.addEventListener('mouseenter', (e) => {
+    bubble.addEventListener('mouseenter', e => {
       tooltip.innerHTML = donor.name + ' &nbsp;<span>$' + donor.total.toLocaleString() + '</span>';
       tooltip.style.display = 'block';
       positionTooltip(e);
     });
-    bubble.addEventListener('mousemove', positionTooltip);
+    bubble.addEventListener('mousemove',  positionTooltip);
     bubble.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
 
     layer.appendChild(bubble);
   });
 
   function addInitial(parent, name, r) {
-    const init = document.createElement('div');
-    init.className = 'bubble-initial';
-    init.style.fontSize = Math.max(r * 0.65, 10) + 'px';
-    init.textContent = name.charAt(0).toUpperCase();
-    parent.appendChild(init);
+    const el = document.createElement('div');
+    el.className = 'bubble-initial';
+    el.style.fontSize = Math.max(r * 0.65, 9) + 'px';
+    el.textContent = name.charAt(0).toUpperCase();
+    parent.appendChild(el);
   }
 
   function positionTooltip(e) {
