@@ -387,7 +387,7 @@ def seed_data():
             category="Social Programs",
             description="Provide college scholarships to 10 deserving local students.",
             goal=30000,
-            photo_url="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=400&fit=crop",
+            photo_url="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop",
             start_date=date(2026, 2, 1), end_date=date(2026, 6, 30),
         ),
         Campaign(
