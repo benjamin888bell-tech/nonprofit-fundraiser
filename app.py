@@ -418,16 +418,23 @@ def seed_data():
     db.session.flush()
 
     donations = [
-        Donation(amount=5000,  date=date(2026, 1, 15), donor_id=donors[0].id, campaign_id=campaigns[0].id, note="Kickoff gift"),
-        Donation(amount=2500,  date=date(2026, 2, 3),  donor_id=donors[1].id, campaign_id=campaigns[0].id),
-        Donation(amount=10000, date=date(2026, 3, 10), donor_id=donors[0].id, campaign_id=campaigns[1].id, note="Founding donor"),
-        Donation(amount=25000, date=date(2026, 4, 5),  donor_id=donors[3].id, campaign_id=campaigns[1].id, note="Major gift"),
-        Donation(amount=1000,  date=date(2026, 2, 20), donor_id=donors[2].id, campaign_id=campaigns[2].id),
-        Donation(amount=500,   date=date(2026, 3, 1),  donor_id=donors[4].id, campaign_id=campaigns[2].id),
-        Donation(amount=5000,  date=date(2026, 3, 15), donor_id=donors[1].id, campaign_id=campaigns[2].id),
-        Donation(amount=3000,  date=date(2026, 4, 20), donor_id=donors[2].id, campaign_id=campaigns[0].id),
-        Donation(amount=1500,  date=date(2026, 5, 5),  donor_id=donors[4].id, campaign_id=campaigns[3].id),
-        Donation(amount=8000,  date=date(2026, 5, 12), donor_id=donors[0].id, campaign_id=campaigns[3].id, note="Grateful supporter"),
+        # Building Maintenance Fund — target ~88% of $50,000 = $44,000
+        Donation(amount=15000, date=date(2026, 1, 10), donor_id=donors[0].id, campaign_id=campaigns[0].id, note="Lead gift"),
+        Donation(amount=12000, date=date(2026, 2, 4),  donor_id=donors[3].id, campaign_id=campaigns[0].id, note="Proud to help"),
+        Donation(amount=8000,  date=date(2026, 3, 1),  donor_id=donors[1].id, campaign_id=campaigns[0].id),
+        Donation(amount=5000,  date=date(2026, 4, 8),  donor_id=donors[2].id, campaign_id=campaigns[0].id),
+        Donation(amount=4000,  date=date(2026, 5, 20), donor_id=donors[4].id, campaign_id=campaigns[0].id),
+        # New Community Center Roof — target ~30% of $80,000 = $24,000
+        Donation(amount=15000, date=date(2026, 3, 5),  donor_id=donors[0].id, campaign_id=campaigns[1].id, note="Founding donor"),
+        Donation(amount=9000,  date=date(2026, 4, 18), donor_id=donors[1].id, campaign_id=campaigns[1].id),
+        # Youth Scholarship Fund — target ~62% of $30,000 = $18,600
+        Donation(amount=8000,  date=date(2026, 2, 14), donor_id=donors[3].id, campaign_id=campaigns[2].id, note="For the next generation"),
+        Donation(amount=5600,  date=date(2026, 3, 22), donor_id=donors[2].id, campaign_id=campaigns[2].id),
+        Donation(amount=3000,  date=date(2026, 4, 10), donor_id=donors[1].id, campaign_id=campaigns[2].id),
+        Donation(amount=2000,  date=date(2026, 5, 3),  donor_id=donors[4].id, campaign_id=campaigns[2].id),
+        # Senior Meals Program — target ~12% of $25,000 = $3,000
+        Donation(amount=2000,  date=date(2026, 5, 15), donor_id=donors[0].id, campaign_id=campaigns[3].id, note="Just getting started"),
+        Donation(amount=1000,  date=date(2026, 6, 1),  donor_id=donors[2].id, campaign_id=campaigns[3].id),
     ]
     db.session.add_all(donations)
     db.session.commit()
