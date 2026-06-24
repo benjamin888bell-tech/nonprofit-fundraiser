@@ -35,6 +35,7 @@ class Campaign(db.Model):
     photo_mime = db.Column(db.String(50))  # e.g. "image/jpeg"
     photo_url = db.Column(db.String(500))  # fallback URL for sample/external photos
     hours_goal = db.Column(db.Float)       # optional volunteer hours goal
+    prayer_goal = db.Column(db.Float)      # optional prayer hours goal
     start_date = db.Column(db.Date, default=date.today)
     end_date = db.Column(db.Date)
     active = db.Column(db.Boolean, default=True)
@@ -65,8 +66,17 @@ class Campaign(db.Model):
         return min(round(self.total_hours / self.hours_goal * 100, 1), 100)
 
     @property
+    def total_prayer_hours(self):
+        return sum(d.prayer_hours or 0 for d in self.donations)
+
+    @property
+    def prayer_progress_pct(self):
+        if not self.prayer_goal or self.prayer_goal == 0:
+            return 0
+        return min(round(self.total_prayer_hours / self.prayer_goal * 100, 1), 100)
+
+    @property
     def photo_src(self):
-        # Prefer uploaded photo; fall back to URL
         if self.photo and self.photo_mime:
             return f"data:{self.photo_mime};base64,{self.photo}"
         return self.photo_url or None
@@ -98,7 +108,8 @@ class Donor(db.Model):
 class Donation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False, default=0.0)
-    hours_pledged = db.Column(db.Float)          # nullable — hours volunteered
+    hours_pledged = db.Column(db.Float)    # nullable — volunteer hours
+    prayer_hours = db.Column(db.Float)     # nullable — prayer hours
     date = db.Column(db.Date, default=date.today)
     note = db.Column(db.String(300))
     donor_id = db.Column(db.Integer, db.ForeignKey("donor.id"), nullable=True)
@@ -126,6 +137,24 @@ def save_donor_photo(donor, file):
         donor.photo_mime = mime
 
 
+def build_bubble_map(donations, value_attr):
+    """Group donations by donor and sum the given attribute for bubble sizing."""
+    donor_map = {}
+    for d in donations:
+        val = getattr(d, value_attr) or 0
+        if val <= 0:
+            continue
+        key = d.donor_id if d.donor_id else f"anon_{d.id}"
+        if key not in donor_map:
+            donor_map[key] = {
+                "name": d.donor.name if d.donor else "Anonymous",
+                "total": 0,
+                "photo": d.donor.photo_src if d.donor else None,
+            }
+        donor_map[key]["total"] += val
+    return sorted(donor_map.values(), key=lambda x: x["total"], reverse=True)
+
+
 # ─── Admin Routes ─────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -141,6 +170,7 @@ def index():
         .all()
     )
     total_hours = sum(c.total_hours for c in Campaign.query.all())
+    total_prayer = sum(c.total_prayer_hours for c in Campaign.query.all())
     return render_template(
         "admin_dashboard.html",
         campaigns=campaigns,
@@ -148,6 +178,7 @@ def index():
         total_donors=total_donors,
         total_donations=total_donations,
         total_hours=total_hours,
+        total_prayer=total_prayer,
         recent_donations=recent_donations,
         categories=CAMPAIGN_CATEGORIES,
         category_icons=CATEGORY_ICONS,
@@ -165,14 +196,16 @@ def campaigns():
 @app.route("/campaigns/new", methods=["GET", "POST"])
 def new_campaign():
     if request.method == "POST":
-        end_str = request.form.get("end_date")
-        hours_str = request.form.get("hours_goal", "").strip()
+        end_str    = request.form.get("end_date")
+        hours_str  = request.form.get("hours_goal", "").strip()
+        prayer_str = request.form.get("prayer_goal", "").strip()
         campaign = Campaign(
             name=request.form["name"],
             category=request.form.get("category", "Operations & Maintenance"),
             description=request.form.get("description"),
             goal=float(request.form["goal"]),
             hours_goal=float(hours_str) if hours_str else None,
+            prayer_goal=float(prayer_str) if prayer_str else None,
             start_date=date.fromisoformat(request.form["start_date"]),
             end_date=date.fromisoformat(end_str) if end_str else None,
         )
@@ -188,16 +221,18 @@ def new_campaign():
 def edit_campaign(id):
     campaign = Campaign.query.get_or_404(id)
     if request.method == "POST":
-        end_str = request.form.get("end_date")
-        hours_str = request.form.get("hours_goal", "").strip()
-        campaign.name = request.form["name"]
-        campaign.category = request.form.get("category", "Operations & Maintenance")
+        end_str    = request.form.get("end_date")
+        hours_str  = request.form.get("hours_goal", "").strip()
+        prayer_str = request.form.get("prayer_goal", "").strip()
+        campaign.name        = request.form["name"]
+        campaign.category    = request.form.get("category", "Operations & Maintenance")
         campaign.description = request.form.get("description")
-        campaign.goal = float(request.form["goal"])
-        campaign.hours_goal = float(hours_str) if hours_str else None
-        campaign.start_date = date.fromisoformat(request.form["start_date"])
-        campaign.end_date = date.fromisoformat(end_str) if end_str else None
-        campaign.active = "active" in request.form
+        campaign.goal        = float(request.form["goal"])
+        campaign.hours_goal  = float(hours_str) if hours_str else None
+        campaign.prayer_goal = float(prayer_str) if prayer_str else None
+        campaign.start_date  = date.fromisoformat(request.form["start_date"])
+        campaign.end_date    = date.fromisoformat(end_str) if end_str else None
+        campaign.active      = "active" in request.form
         photo_file = request.files.get("photo")
         if photo_file and photo_file.filename:
             save_photo(campaign, photo_file)
@@ -244,7 +279,7 @@ def new_donor():
 def edit_donor(id):
     donor = Donor.query.get_or_404(id)
     if request.method == "POST":
-        donor.name = request.form["name"]
+        donor.name  = request.form["name"]
         donor.email = request.form.get("email")
         donor.phone = request.form.get("phone")
         donor.notes = request.form.get("notes")
@@ -269,12 +304,14 @@ def new_donation():
     campaigns = Campaign.query.filter_by(active=True).all()
     donors = Donor.query.order_by(Donor.name).all()
     if request.method == "POST":
-        donor_id = request.form.get("donor_id") or None
+        donor_id   = request.form.get("donor_id") or None
         amount_str = request.form.get("amount", "").strip()
         hours_str  = request.form.get("hours_pledged", "").strip()
+        prayer_str = request.form.get("prayer_hours", "").strip()
         donation = Donation(
             amount=float(amount_str) if amount_str else 0.0,
             hours_pledged=float(hours_str) if hours_str else None,
+            prayer_hours=float(prayer_str) if prayer_str else None,
             date=date.fromisoformat(request.form["date"]),
             note=request.form.get("note"),
             donor_id=int(donor_id) if donor_id else None,
@@ -366,19 +403,19 @@ def public_campaign(id):
         .limit(10)
         .all()
     )
-    # Group donations by donor for bubble sizing
-    donor_map = {}
-    for d in campaign.donations:
-        key = d.donor_id if d.donor_id else f"anon_{d.id}"
-        if key not in donor_map:
-            donor_map[key] = {
-                "name": d.donor.name if d.donor else "Anonymous",
-                "total": 0,
-                "photo": d.donor.photo_src if d.donor else None,
-            }
-        donor_map[key]["total"] += d.amount
-    bubble_data = sorted(donor_map.values(), key=lambda x: x["total"], reverse=True)
-    return render_template("public_campaign.html", campaign=campaign, recent=recent, bubble_data=bubble_data)
+    # Build bubble data for each jar
+    bubble_data        = build_bubble_map(campaign.donations, "amount")
+    vol_bubble_data    = build_bubble_map(campaign.donations, "hours_pledged")
+    prayer_bubble_data = build_bubble_map(campaign.donations, "prayer_hours")
+
+    return render_template(
+        "public_campaign.html",
+        campaign=campaign,
+        recent=recent,
+        bubble_data=bubble_data,
+        vol_bubble_data=vol_bubble_data,
+        prayer_bubble_data=prayer_bubble_data,
+    )
 
 
 # ─── Seed & Init ─────────────────────────────────────────────────────────────
@@ -391,7 +428,7 @@ def seed_data():
             name="[SAMPLE] Building Maintenance Fund",
             category="Operations & Maintenance",
             description="Keep our facilities safe and well-maintained for everyone who uses them.",
-            goal=50000, hours_goal=200,
+            goal=50000, hours_goal=200, prayer_goal=500,
             photo_url="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=400&fit=crop",
             start_date=date(2026, 1, 1), end_date=date(2026, 12, 31),
         ),
@@ -399,7 +436,7 @@ def seed_data():
             name="[SAMPLE] New Community Center Roof",
             category="Operations & Maintenance",
             description="Replace the aging roof on our main community center building.",
-            goal=80000, hours_goal=300,
+            goal=80000, hours_goal=300, prayer_goal=400,
             photo_url="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
             start_date=date(2026, 3, 1), end_date=date(2026, 9, 30),
         ),
@@ -407,7 +444,7 @@ def seed_data():
             name="[SAMPLE] Youth Scholarship Fund",
             category="Social Programs",
             description="Provide college scholarships to 10 deserving local students.",
-            goal=30000, hours_goal=100,
+            goal=30000, hours_goal=100, prayer_goal=300,
             photo_url="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop",
             start_date=date(2026, 2, 1), end_date=date(2026, 6, 30),
         ),
@@ -415,7 +452,7 @@ def seed_data():
             name="[SAMPLE] Senior Meals Program",
             category="Social Programs",
             description="Deliver hot meals to homebound seniors in our community five days a week.",
-            goal=25000, hours_goal=150,
+            goal=25000, hours_goal=150, prayer_goal=250,
             photo_url="https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop",
             start_date=date(2026, 1, 1), end_date=date(2026, 12, 31),
         ),
@@ -444,41 +481,41 @@ def seed_data():
     db.session.flush()
 
     donations = [
-        # Building Maintenance Fund — target ~88% of $50,000 = $44,000
+        # Building Maintenance Fund — ~88% of $50,000
         Donation(amount=15000, date=date(2026, 1, 10), donor_id=donors[0].id, campaign_id=campaigns[0].id, note="Lead gift"),
         Donation(amount=12000, date=date(2026, 2, 4),  donor_id=donors[3].id, campaign_id=campaigns[0].id, note="Proud to help"),
         Donation(amount=8000,  date=date(2026, 3, 1),  donor_id=donors[1].id, campaign_id=campaigns[0].id),
         Donation(amount=5000,  date=date(2026, 4, 8),  donor_id=donors[2].id, campaign_id=campaigns[0].id),
         Donation(amount=4000,  date=date(2026, 5, 20), donor_id=donors[4].id, campaign_id=campaigns[0].id),
-        # New Community Center Roof — target ~30% of $80,000 = $24,000
+        # New Community Center Roof — ~30% of $80,000
         Donation(amount=15000, date=date(2026, 3, 5),  donor_id=donors[0].id, campaign_id=campaigns[1].id, note="Founding donor"),
         Donation(amount=9000,  date=date(2026, 4, 18), donor_id=donors[1].id, campaign_id=campaigns[1].id),
-        # Youth Scholarship Fund — target ~62% of $30,000 = $18,600
+        # Youth Scholarship Fund — ~62% of $30,000
         Donation(amount=8000,  date=date(2026, 2, 14), donor_id=donors[3].id, campaign_id=campaigns[2].id, note="For the next generation"),
         Donation(amount=5600,  date=date(2026, 3, 22), donor_id=donors[2].id, campaign_id=campaigns[2].id),
         Donation(amount=3000,  date=date(2026, 4, 10), donor_id=donors[1].id, campaign_id=campaigns[2].id),
         Donation(amount=2000,  date=date(2026, 5, 3),  donor_id=donors[4].id, campaign_id=campaigns[2].id),
-        # Senior Meals Program — target ~12% of $25,000 = $3,000
+        # Senior Meals Program — ~12% of $25,000
         Donation(amount=2000,  date=date(2026, 5, 15), donor_id=donors[0].id, campaign_id=campaigns[3].id, note="Just getting started"),
         Donation(amount=1000,  date=date(2026, 6, 1),  donor_id=donors[2].id, campaign_id=campaigns[3].id),
-        # New donor contributions
-        Donation(amount=1500,  date=date(2026, 2, 8),  donor_id=donors[5].id,  campaign_id=campaigns[0].id),                              # Frank → Building Maintenance
-        Donation(amount=1000,  date=date(2026, 5, 22), donor_id=donors[5].id,  campaign_id=campaigns[3].id, note="Happy to help"),         # Frank → Senior Meals
-        Donation(amount=2000,  date=date(2026, 3, 14), donor_id=donors[6].id,  campaign_id=campaigns[0].id),                              # Grace → Building Maintenance
-        Donation(amount=800,   date=date(2026, 6, 3),  donor_id=donors[6].id,  campaign_id=campaigns[3].id),                              # Grace → Senior Meals
-        Donation(amount=3000,  date=date(2026, 4, 2),  donor_id=donors[7].id,  campaign_id=campaigns[1].id, note="For our community"),     # Henry → Roof
-        Donation(amount=2500,  date=date(2026, 4, 11), donor_id=donors[8].id,  campaign_id=campaigns[1].id),                              # Isabella → Roof
-        Donation(amount=4000,  date=date(2026, 5, 7),  donor_id=donors[9].id,  campaign_id=campaigns[1].id, note="Big believer in this"), # James → Roof
-        Donation(amount=500,   date=date(2026, 5, 19), donor_id=donors[9].id,  campaign_id=campaigns[2].id),                              # James → Youth Scholarship
-        Donation(amount=1500,  date=date(2026, 3, 28), donor_id=donors[10].id, campaign_id=campaigns[1].id),                              # Katherine → Roof
-        Donation(amount=2000,  date=date(2026, 4, 24), donor_id=donors[10].id, campaign_id=campaigns[2].id, note="Education changes lives"),# Katherine → Youth Scholarship
-        Donation(amount=1500,  date=date(2026, 2, 25), donor_id=donors[11].id, campaign_id=campaigns[2].id),                              # Luis → Youth Scholarship
-        Donation(amount=2000,  date=date(2026, 3, 17), donor_id=donors[12].id, campaign_id=campaigns[2].id, note="Con mucho gusto"),       # Maria → Youth Scholarship
-        Donation(amount=1000,  date=date(2026, 4, 30), donor_id=donors[13].id, campaign_id=campaigns[2].id),                              # Nathan → Youth Scholarship
-        Donation(amount=800,   date=date(2026, 6, 5),  donor_id=donors[13].id, campaign_id=campaigns[3].id),                              # Nathan → Senior Meals
-        Donation(amount=500,   date=date(2026, 5, 28), donor_id=donors[14].id, campaign_id=campaigns[3].id),                              # Olivia → Senior Meals
-        Donation(amount=500,   date=date(2026, 6, 10), donor_id=donors[14].id, campaign_id=campaigns[1].id),                              # Olivia → Roof
-        # Hour pledges (amount=0, hours_pledged > 0)
+        # Additional donor contributions
+        Donation(amount=1500,  date=date(2026, 2, 8),  donor_id=donors[5].id,  campaign_id=campaigns[0].id),
+        Donation(amount=1000,  date=date(2026, 5, 22), donor_id=donors[5].id,  campaign_id=campaigns[3].id, note="Happy to help"),
+        Donation(amount=2000,  date=date(2026, 3, 14), donor_id=donors[6].id,  campaign_id=campaigns[0].id),
+        Donation(amount=800,   date=date(2026, 6, 3),  donor_id=donors[6].id,  campaign_id=campaigns[3].id),
+        Donation(amount=3000,  date=date(2026, 4, 2),  donor_id=donors[7].id,  campaign_id=campaigns[1].id, note="For our community"),
+        Donation(amount=2500,  date=date(2026, 4, 11), donor_id=donors[8].id,  campaign_id=campaigns[1].id),
+        Donation(amount=4000,  date=date(2026, 5, 7),  donor_id=donors[9].id,  campaign_id=campaigns[1].id, note="Big believer in this"),
+        Donation(amount=500,   date=date(2026, 5, 19), donor_id=donors[9].id,  campaign_id=campaigns[2].id),
+        Donation(amount=1500,  date=date(2026, 3, 28), donor_id=donors[10].id, campaign_id=campaigns[1].id),
+        Donation(amount=2000,  date=date(2026, 4, 24), donor_id=donors[10].id, campaign_id=campaigns[2].id, note="Education changes lives"),
+        Donation(amount=1500,  date=date(2026, 2, 25), donor_id=donors[11].id, campaign_id=campaigns[2].id),
+        Donation(amount=2000,  date=date(2026, 3, 17), donor_id=donors[12].id, campaign_id=campaigns[2].id, note="Con mucho gusto"),
+        Donation(amount=1000,  date=date(2026, 4, 30), donor_id=donors[13].id, campaign_id=campaigns[2].id),
+        Donation(amount=800,   date=date(2026, 6, 5),  donor_id=donors[13].id, campaign_id=campaigns[3].id),
+        Donation(amount=500,   date=date(2026, 5, 28), donor_id=donors[14].id, campaign_id=campaigns[3].id),
+        Donation(amount=500,   date=date(2026, 6, 10), donor_id=donors[14].id, campaign_id=campaigns[1].id),
+        # Volunteer hour pledges
         Donation(amount=0, hours_pledged=20,  date=date(2026, 2, 10), donor_id=donors[5].id,  campaign_id=campaigns[0].id, note="Happy to volunteer"),
         Donation(amount=0, hours_pledged=25,  date=date(2026, 3, 5),  donor_id=donors[7].id,  campaign_id=campaigns[0].id),
         Donation(amount=0, hours_pledged=15,  date=date(2026, 4, 1),  donor_id=donors[9].id,  campaign_id=campaigns[1].id, note="Skilled carpenter"),
@@ -489,6 +526,22 @@ def seed_data():
         Donation(amount=0, hours_pledged=15,  date=date(2026, 5, 20), donor_id=donors[6].id,  campaign_id=campaigns[3].id, note="Meal delivery"),
         Donation(amount=0, hours_pledged=20,  date=date(2026, 6, 1),  donor_id=donors[14].id, campaign_id=campaigns[3].id),
         Donation(amount=0, hours_pledged=8,   date=date(2026, 6, 8),  donor_id=donors[13].id, campaign_id=campaigns[3].id),
+        # Prayer hour pledges
+        Donation(amount=0, prayer_hours=30,  date=date(2026, 1, 15), donor_id=donors[0].id,  campaign_id=campaigns[0].id, note="Praying daily"),
+        Donation(amount=0, prayer_hours=20,  date=date(2026, 2, 1),  donor_id=donors[1].id,  campaign_id=campaigns[0].id),
+        Donation(amount=0, prayer_hours=25,  date=date(2026, 2, 20), donor_id=donors[3].id,  campaign_id=campaigns[0].id, note="Lifting this up"),
+        Donation(amount=0, prayer_hours=15,  date=date(2026, 3, 12), donor_id=donors[6].id,  campaign_id=campaigns[0].id),
+        Donation(amount=0, prayer_hours=10,  date=date(2026, 4, 3),  donor_id=donors[11].id, campaign_id=campaigns[0].id),
+        Donation(amount=0, prayer_hours=40,  date=date(2026, 3, 8),  donor_id=donors[2].id,  campaign_id=campaigns[1].id, note="Committed to pray"),
+        Donation(amount=0, prayer_hours=20,  date=date(2026, 4, 20), donor_id=donors[8].id,  campaign_id=campaigns[1].id),
+        Donation(amount=0, prayer_hours=15,  date=date(2026, 5, 2),  donor_id=donors[12].id, campaign_id=campaigns[1].id),
+        Donation(amount=0, prayer_hours=35,  date=date(2026, 2, 18), donor_id=donors[4].id,  campaign_id=campaigns[2].id, note="In prayer each morning"),
+        Donation(amount=0, prayer_hours=20,  date=date(2026, 3, 25), donor_id=donors[7].id,  campaign_id=campaigns[2].id),
+        Donation(amount=0, prayer_hours=15,  date=date(2026, 4, 14), donor_id=donors[13].id, campaign_id=campaigns[2].id),
+        Donation(amount=0, prayer_hours=50,  date=date(2026, 2, 5),  donor_id=donors[9].id,  campaign_id=campaigns[3].id, note="Praying for our seniors"),
+        Donation(amount=0, prayer_hours=30,  date=date(2026, 3, 18), donor_id=donors[10].id, campaign_id=campaigns[3].id),
+        Donation(amount=0, prayer_hours=18,  date=date(2026, 4, 28), donor_id=donors[14].id, campaign_id=campaigns[3].id),
+        Donation(amount=0, prayer_hours=12,  date=date(2026, 5, 10), donor_id=donors[5].id,  campaign_id=campaigns[3].id),
     ]
     db.session.add_all(donations)
     db.session.commit()
