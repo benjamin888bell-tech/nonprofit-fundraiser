@@ -370,6 +370,12 @@
         <div class="stat-val">${{ "{:,.0f}".format(campaign.total_raised / campaign.donations|length) if campaign.donations else 0 }}</div>
         <div class="stat-lbl">Avg Gift</div>
       </div>
+      {% if campaign.hours_goal %}
+      <div class="stat-item">
+        <div class="stat-val" style="color:#6c63ff">{{ campaign.total_hours|int }}</div>
+        <div class="stat-lbl">Hours Pledged</div>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -411,6 +417,46 @@
     {% endif %}
   </div>
 
+  {% if campaign.hours_goal %}
+  <!-- Volunteer Hours Section -->
+  <div class="card">
+    <div class="section-title">⏱ Volunteer Hours</div>
+    <div style="display:flex;align-items:center;gap:24px;margin-bottom:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:36px;font-weight:800;color:#6c63ff;line-height:1">{{ campaign.total_hours|int }}</div>
+        <div style="font-size:13px;color:#888;margin-top:3px">hours pledged of {{ campaign.hours_goal|int }} goal</div>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px">
+          <span>Progress</span>
+          <span style="font-weight:700;color:#6c63ff">{{ campaign.hours_progress_pct }}%</span>
+        </div>
+        <div style="background:#ede9fe;border-radius:99px;height:10px;overflow:hidden">
+          <div style="height:100%;border-radius:99px;background:linear-gradient(90deg,#6c63ff,#a78bfa);width:{{ campaign.hours_progress_pct }}%"></div>
+        </div>
+      </div>
+    </div>
+    {% set hour_pledges = campaign.donations | selectattr('hours_pledged') | list %}
+    {% if hour_pledges %}
+    <div style="font-size:13px;font-weight:600;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Hour Pledgers</div>
+    {% for d in hour_pledges %}
+    <div class="recent-item">
+      <div>
+        <div class="ri-name">{{ d.donor.name if d.donor else 'Anonymous Volunteer' }}</div>
+        <div class="ri-date">{{ d.date.strftime('%B %d, %Y') }}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:700;color:#6c63ff">{{ d.hours_pledged|int }} hrs</div>
+        {% if d.note %}<div class="ri-note">{{ d.note }}</div>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:#aaa;text-align:center;padding:16px">No hours pledged yet — be the first volunteer!</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- Recent donations -->
   <div class="card">
     <div class="section-title">Recent Donations</div>
@@ -422,7 +468,10 @@
         <div class="ri-date">{{ d.date.strftime('%B %d, %Y') }}</div>
       </div>
       <div style="text-align:right">
+        {% if d.amount > 0 %}
         <div class="ri-amount">${{ "{:,.0f}".format(d.amount) }}</div>
+        {% endif %}
+        {% if d.hours_pledged %}<div style="font-size:15px;font-weight:600;color:#6c63ff">{{ d.hours_pledged|int }} hrs</div>{% endif %}
         {% if d.note %}<div class="ri-note">{{ d.note }}</div>{% endif %}
       </div>
     </div>

@@ -95,6 +95,13 @@
         <input type="number" name="goal" required step="0.01" min="0"
                value="{{ campaign.goal if campaign else '' }}" placeholder="50000" />
       </div>
+      <div class="form-group">
+        <label>Volunteer Hours Goal <span style="color:#aaa;font-weight:400">(optional)</span></label>
+        <input type="number" name="hours_goal" step="0.5" min="0"
+               value="{{ campaign.hours_goal if campaign and campaign.hours_goal else '' }}" placeholder="e.g. 200" />
+      </div>
+    </div>
+    <div class="form-row">
       <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:26px">
         {% if campaign %}
         <input type="checkbox" name="active" id="active" {{ 'checked' if campaign.active }} style="width:auto" />
