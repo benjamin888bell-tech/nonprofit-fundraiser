@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Log Donation · GiveTrack{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Log Donation</h1>
+    <p class="page-subtitle">Record a new donation</p>
+  </div>
+  <a href="{{ url_for('donations') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:560px">
+  <form method="post">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Amount ($) *</label>
+        <input type="number" name="amount" required step="0.01" min="0.01" placeholder="500.00" />
+      </div>
+      <div class="form-group">
+        <label>Date *</label>
+        <input type="date" name="date" required value="{{ today }}" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Campaign *</label>
+      <select name="campaign_id" required>
+        <option value="">Select a campaign…</option>
+        {% for c in campaigns %}
+        <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Donor (optional)</label>
+      <select name="donor_id">
+        <option value="">Anonymous / Unknown</option>
+        {% for d in donors %}
+        <option value="{{ d.id }}">{{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <input type="text" name="note" placeholder="e.g. In memory of Jane Doe, Major gift, etc." />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button type="submit" class="btn btn-primary">Log Donation</button>
+      <a href="{{ url_for('donations') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if campaign else 'New' }} Campaign · GiveTrack{% endblock %}
+
+{% block extra_head %}
+<style>
+  .photo-upload-box {
+    border: 2px dashed #dde; border-radius: 12px; padding: 24px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s; background: #fafafa;
+  }
+  .photo-upload-box:hover { border-color: #6c63ff; }
+  .photo-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; display: none; margin-top: 12px; }
+  .photo-preview.visible { display: block; }
+  .current-photo { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
+  .cat-option { display: flex; gap: 12px; }
+  .cat-radio { display: none; }
+  .cat-label {
+    flex: 1; border: 2px solid #eee; border-radius: 10px; padding: 14px 16px;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .cat-label:hover { border-color: #a78bfa; }
+  .cat-radio:checked + .cat-label { border-color: #6c63ff; background: #f5f3ff; }
+  .cat-icon { font-size: 28px; margin-bottom: 6px; }
+  .cat-name { font-weight: 600; font-size: 14px; }
+  .cat-desc { font-size: 12px; color: #888; margin-top: 3px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ 'Edit Campaign' if campaign else 'New Campaign' }}</h1>
+    <p class="page-subtitle">{{ 'Update campaign details' if campaign else 'Create a new fundraising campaign' }}</p>
+  </div>
+  <a href="{{ url_for('campaigns') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:640px">
+  <form method="post" enctype="multipart/form-data">
+
+    <div class="form-group">
+      <label>Campaign Type *</label>
+      <div class="cat-option">
+        <div style="flex:1">
+          <input class="cat-radio" type="radio" name="category" id="cat-ops"
+                 value="Operations & Maintenance"
+                 {{ 'checked' if not campaign or campaign.category == 'Operations & Maintenance' }}>
+          <label class="cat-label" for="cat-ops">
+            <div class="cat-icon">🔧</div>
+            <div class="cat-name">Operations & Maintenance</div>
+            <div class="cat-desc">Buildings, equipment, repairs</div>
+          </label>
+        </div>
+        <div style="flex:1">
+          <input class="cat-radio" type="radio" name="category" id="cat-social"
+                 value="Social Programs"
+                 {{ 'checked' if campaign and campaign.category == 'Social Programs' }}>
+          <label class="cat-label" for="cat-social">
+            <div class="cat-icon">🤝</div>
+            <div class="cat-name">Social Programs</div>
+            <div class="cat-desc">Scholarships, meals, outreach</div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Campaign Name *</label>
+      <input type="text" name="name" required value="{{ campaign.name if campaign else '' }}"
+             placeholder="e.g. New Church Roof, Youth Scholarship Fund" />
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" placeholder="Describe what this campaign is for and how funds will be used…">{{ campaign.description if campaign else '' }}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Campaign Photo</label>
+      {% if campaign and campaign.photo_src %}
+      <img class="current-photo" src="{{ campaign.photo_src }}" alt="Current photo" />
+      <div style="font-size:12px;color:#888;margin-bottom:8px">Upload a new photo to replace the current one.</div>
+      {% endif %}
+      <div class="photo-upload-box" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size:32px">📷</div>
+        <div style="font-weight:600;margin:6px 0 2px">Click to upload a photo</div>
+        <div style="font-size:12px;color:#888">JPG, PNG or GIF · Max 5MB</div>
+        <img id="photoPreview" class="photo-preview" src="" alt="Preview" />
+      </div>
+      <input type="file" id="photoInput" name="photo" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fundraising Goal ($) *</label>
+        <input type="number" name="goal" required step="0.01" min="0"
+               value="{{ campaign.goal if campaign else '' }}" placeholder="50000" />
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;padding-top:26px">
+        {% if campaign %}
+        <input type="checkbox" name="active" id="active" {{ 'checked' if campaign.active }} style="width:auto" />
+        <label for="active" style="margin:0;cursor:pointer">Active campaign</label>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Start Date *</label>
+        <input type="date" name="start_date" required
+               value="{{ campaign.start_date.isoformat() if campaign else '' }}" />
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" name="end_date"
+               value="{{ campaign.end_date.isoformat() if campaign and campaign.end_date else '' }}" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button type="submit" class="btn btn-primary">{{ 'Save Changes' if campaign else 'Create Campaign' }}</button>
+      <a href="{{ url_for('campaigns') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+function previewPhoto(input) {
+  const preview = document.getElementById('photoPreview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.classList.add('visible');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Donors · GiveTrack{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Donors</h1>
+    <p class="page-subtitle">{{ donors|length }} donor{{ 's' if donors|length != 1 }}</p>
+  </div>
+  <a href="{{ url_for('new_donor') }}" class="btn btn-primary" style="font-size:15px;padding:10px 20px;">+ Add New Donor</a>
+</div>
+
+{% if donors %}
+<div class="card" style="padding:0">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Total Given</th>
+          <th>Gifts</th>
+          <th>Member Since</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in donors %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#6c63ff;flex-shrink:0">
+                {{ d.name[0].upper() }}
+              </div>
+              <strong>{{ d.name }}</strong>
+            </div>
+          </td>
+          <td style="color:#666">{{ d.email or '—' }}</td>
+          <td style="color:#666">{{ d.phone or '—' }}</td>
+          <td><strong style="color:#22c55e">${{ "{:,.0f}".format(d.total_given) }}</strong></td>
+          <td>{{ d.donations|length }}</td>
+          <td style="font-size:12px;color:#888">{{ d.created_at.strftime('%b %d, %Y') }}</td>
+          <td>
+            <a href="{{ url_for('edit_donor', id=d.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:56px 24px">
+  <div style="font-size:48px;margin-bottom:16px">👥</div>
+  <h3 style="font-size:18px;font-weight:600;margin-bottom:8px">No donors yet</h3>
+  <p style="color:#888;margin-bottom:24px">Start building your donor list by adding your first donor.</p>
+  <a href="{{ url_for('new_donor') }}" class="btn btn-primary" style="font-size:15px;padding:12px 28px;">+ Add Your First Donor</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Donations · GiveTrack{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Donations</h1>
+    <p class="page-subtitle">{{ donations|length }} total donation{{ 's' if donations|length != 1 }}</p>
+  </div>
+  <a href="{{ url_for('new_donation') }}" class="btn btn-primary">+ Log Donation</a>
+</div>
+
+{% if donations %}
+<div class="card" style="padding:0">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Donor</th>
+          <th>Campaign</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in donations %}
+        <tr>
+          <td style="color:#666;font-size:13px">{{ d.date.strftime('%b %d, %Y') }}</td>
+          <td><strong style="color:#22c55e;font-size:15px">${{ "{:,.0f}".format(d.amount) }}</strong></td>
+          <td>
+            {% if d.donor %}
+              <a href="{{ url_for('edit_donor', id=d.donor.id) }}" style="color:#6c63ff;font-weight:500">{{ d.donor.name }}</a>
+            {% else %}
+              <span style="color:#aaa">Anonymous</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge badge-purple">{{ d.campaign.name }}</span>
+          </td>
+          <td style="color:#888;font-size:13px">{{ d.note or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card empty">
+  <div class="empty-icon">💸</div>
+  <p>No donations logged yet. <a href="{{ url_for('new_donation') }}" style="color:#6c63ff">Log one →</a></p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if donor else 'New' }} Donor · GiveTrack{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ 'Edit Donor' if donor else 'Add Donor' }}</h1>
+  </div>
+  <a href="{{ url_for('donors') }}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div class="card" style="max-width:560px">
+  <form method="post">
+    <div class="form-group">
+      <label>Full Name *</label>
+      <input type="text" name="name" required value="{{ donor.name if donor else '' }}" placeholder="Jane Smith" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="{{ donor.email if donor else '' }}" placeholder="jane@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" name="phone" value="{{ donor.phone if donor else '' }}" placeholder="555-0100" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea name="notes" placeholder="Internal notes about this donor…">{{ donor.notes if donor else '' }}</textarea>
+    </div>
+    {% if donor and donor.donations %}
+    <div style="background:#f5f7fa;border-radius:8px;padding:16px;margin-bottom:18px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#444">Donation History</div>
+      {% for don in donor.donations|sort(attribute='date', reverse=True) %}
+      <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #eee">
+        <span>{{ don.campaign.name }}</span>
+        <span style="color:#22c55e;font-weight:600">${{ "{:,.0f}".format(don.amount) }}</span>
+        <span style="color:#888">{{ don.date.strftime('%b %d, %Y') }}</span>
+      </div>
+      {% endfor %}
+      <div style="font-size:13px;font-weight:700;margin-top:8px;text-align:right">
+        Total: <span style="color:#22c55e">${{ "{:,.0f}".format(donor.total_given) }}</span>
+      </div>
+    </div>
+    {% endif %}
+    <div style="display:flex;gap:10px">
+      <button type="submit" class="btn btn-primary">{{ 'Save Changes' if donor else 'Add Donor' }}</button>
+      <a href="{{ url_for('donors') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
