@@ -34,6 +34,7 @@ class Campaign(db.Model):
     photo = db.Column(db.Text)             # base64-encoded uploaded image
     photo_mime = db.Column(db.String(50))  # e.g. "image/jpeg"
     photo_url = db.Column(db.String(500))  # fallback URL for sample/external photos
+    hours_goal = db.Column(db.Float)       # optional volunteer hours goal
     start_date = db.Column(db.Date, default=date.today)
     end_date = db.Column(db.Date)
     active = db.Column(db.Boolean, default=True)
@@ -52,6 +53,16 @@ class Campaign(db.Model):
     @property
     def donor_count(self):
         return len(set(d.donor_id for d in self.donations if d.donor_id))
+
+    @property
+    def total_hours(self):
+        return sum(d.hours_pledged or 0 for d in self.donations)
+
+    @property
+    def hours_progress_pct(self):
+        if not self.hours_goal or self.hours_goal == 0:
+            return 0
+        return min(round(self.total_hours / self.hours_goal * 100, 1), 100)
 
     @property
     def photo_src(self):
@@ -86,7 +97,8 @@ class Donor(db.Model):
 
 class Donation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    amount = db.Column(db.Float, nullable=False)
+    amount = db.Column(db.Float, nullable=False, default=0.0)
+    hours_pledged = db.Column(db.Float)          # nullable — hours volunteered
     date = db.Column(db.Date, default=date.today)
     note = db.Column(db.String(300))
     donor_id = db.Column(db.Integer, db.ForeignKey("donor.id"), nullable=True)
@@ -128,12 +140,14 @@ def index():
         .limit(5)
         .all()
     )
+    total_hours = sum(c.total_hours for c in Campaign.query.all())
     return render_template(
         "admin_dashboard.html",
         campaigns=campaigns,
         total_raised=total_raised,
         total_donors=total_donors,
         total_donations=total_donations,
+        total_hours=total_hours,
         recent_donations=recent_donations,
         categories=CAMPAIGN_CATEGORIES,
         category_icons=CATEGORY_ICONS,
@@ -152,11 +166,13 @@ def campaigns():
 def new_campaign():
     if request.method == "POST":
         end_str = request.form.get("end_date")
+        hours_str = request.form.get("hours_goal", "").strip()
         campaign = Campaign(
             name=request.form["name"],
             category=request.form.get("category", "Operations & Maintenance"),
             description=request.form.get("description"),
             goal=float(request.form["goal"]),
+            hours_goal=float(hours_str) if hours_str else None,
             start_date=date.fromisoformat(request.form["start_date"]),
             end_date=date.fromisoformat(end_str) if end_str else None,
         )
@@ -173,10 +189,12 @@ def edit_campaign(id):
     campaign = Campaign.query.get_or_404(id)
     if request.method == "POST":
         end_str = request.form.get("end_date")
+        hours_str = request.form.get("hours_goal", "").strip()
         campaign.name = request.form["name"]
         campaign.category = request.form.get("category", "Operations & Maintenance")
         campaign.description = request.form.get("description")
         campaign.goal = float(request.form["goal"])
+        campaign.hours_goal = float(hours_str) if hours_str else None
         campaign.start_date = date.fromisoformat(request.form["start_date"])
         campaign.end_date = date.fromisoformat(end_str) if end_str else None
         campaign.active = "active" in request.form
@@ -252,8 +270,11 @@ def new_donation():
     donors = Donor.query.order_by(Donor.name).all()
     if request.method == "POST":
         donor_id = request.form.get("donor_id") or None
+        amount_str = request.form.get("amount", "").strip()
+        hours_str  = request.form.get("hours_pledged", "").strip()
         donation = Donation(
-            amount=float(request.form["amount"]),
+            amount=float(amount_str) if amount_str else 0.0,
+            hours_pledged=float(hours_str) if hours_str else None,
             date=date.fromisoformat(request.form["date"]),
             note=request.form.get("note"),
             donor_id=int(donor_id) if donor_id else None,
@@ -261,7 +282,7 @@ def new_donation():
         )
         db.session.add(donation)
         db.session.commit()
-        flash("Donation logged!", "success")
+        flash("Logged!", "success")
         return redirect(url_for("donations"))
     return render_template("admin_donation_form.html", campaigns=campaigns, donors=donors, today=date.today().isoformat())
 
@@ -370,7 +391,7 @@ def seed_data():
             name="[SAMPLE] Building Maintenance Fund",
             category="Operations & Maintenance",
             description="Keep our facilities safe and well-maintained for everyone who uses them.",
-            goal=50000,
+            goal=50000, hours_goal=200,
             photo_url="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=400&fit=crop",
             start_date=date(2026, 1, 1), end_date=date(2026, 12, 31),
         ),
@@ -378,7 +399,7 @@ def seed_data():
             name="[SAMPLE] New Community Center Roof",
             category="Operations & Maintenance",
             description="Replace the aging roof on our main community center building.",
-            goal=80000,
+            goal=80000, hours_goal=300,
             photo_url="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
             start_date=date(2026, 3, 1), end_date=date(2026, 9, 30),
         ),
@@ -386,7 +407,7 @@ def seed_data():
             name="[SAMPLE] Youth Scholarship Fund",
             category="Social Programs",
             description="Provide college scholarships to 10 deserving local students.",
-            goal=30000,
+            goal=30000, hours_goal=100,
             photo_url="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=400&fit=crop",
             start_date=date(2026, 2, 1), end_date=date(2026, 6, 30),
         ),
@@ -394,7 +415,7 @@ def seed_data():
             name="[SAMPLE] Senior Meals Program",
             category="Social Programs",
             description="Deliver hot meals to homebound seniors in our community five days a week.",
-            goal=25000,
+            goal=25000, hours_goal=150,
             photo_url="https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=400&fit=crop",
             start_date=date(2026, 1, 1), end_date=date(2026, 12, 31),
         ),
@@ -457,6 +478,17 @@ def seed_data():
         Donation(amount=800,   date=date(2026, 6, 5),  donor_id=donors[13].id, campaign_id=campaigns[3].id),                              # Nathan → Senior Meals
         Donation(amount=500,   date=date(2026, 5, 28), donor_id=donors[14].id, campaign_id=campaigns[3].id),                              # Olivia → Senior Meals
         Donation(amount=500,   date=date(2026, 6, 10), donor_id=donors[14].id, campaign_id=campaigns[1].id),                              # Olivia → Roof
+        # Hour pledges (amount=0, hours_pledged > 0)
+        Donation(amount=0, hours_pledged=20,  date=date(2026, 2, 10), donor_id=donors[5].id,  campaign_id=campaigns[0].id, note="Happy to volunteer"),
+        Donation(amount=0, hours_pledged=25,  date=date(2026, 3, 5),  donor_id=donors[7].id,  campaign_id=campaigns[0].id),
+        Donation(amount=0, hours_pledged=15,  date=date(2026, 4, 1),  donor_id=donors[9].id,  campaign_id=campaigns[1].id, note="Skilled carpenter"),
+        Donation(amount=0, hours_pledged=30,  date=date(2026, 4, 15), donor_id=donors[2].id,  campaign_id=campaigns[1].id),
+        Donation(amount=0, hours_pledged=10,  date=date(2026, 3, 10), donor_id=donors[10].id, campaign_id=campaigns[2].id, note="Tutoring support"),
+        Donation(amount=0, hours_pledged=12,  date=date(2026, 4, 5),  donor_id=donors[12].id, campaign_id=campaigns[2].id),
+        Donation(amount=0, hours_pledged=8,   date=date(2026, 5, 1),  donor_id=donors[4].id,  campaign_id=campaigns[2].id),
+        Donation(amount=0, hours_pledged=15,  date=date(2026, 5, 20), donor_id=donors[6].id,  campaign_id=campaigns[3].id, note="Meal delivery"),
+        Donation(amount=0, hours_pledged=20,  date=date(2026, 6, 1),  donor_id=donors[14].id, campaign_id=campaigns[3].id),
+        Donation(amount=0, hours_pledged=8,   date=date(2026, 6, 8),  donor_id=donors[13].id, campaign_id=campaigns[3].id),
     ]
     db.session.add_all(donations)
     db.session.commit()
