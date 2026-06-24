@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit' if donor else 'New' }} Donor · GiveTrack{% endblock %}
 
+{% block extra_head %}
+<style>
+  .photo-upload-box {
+    border: 2px dashed #dde; border-radius: 12px; padding: 20px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s; background: #fafafa;
+  }
+  .photo-upload-box:hover { border-color: #6c63ff; }
+  .photo-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: none; margin: 12px auto 0; border: 3px solid #ede9fe; }
+  .photo-preview.visible { display: block; }
+  .current-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #ede9fe; display: block; margin: 0 auto 12px; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
   <div>
@@ -10,7 +23,7 @@
 </div>
 
 <div class="card" style="max-width:560px">
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     <div class="form-group">
       <label>Full Name *</label>
       <input type="text" name="name" required value="{{ donor.name if donor else '' }}" placeholder="Jane Smith" />
@@ -25,6 +38,22 @@
         <input type="tel" name="phone" value="{{ donor.phone if donor else '' }}" placeholder="555-0100" />
       </div>
     </div>
+
+    <div class="form-group">
+      <label>Donor Photo</label>
+      {% if donor and donor.photo_src %}
+        <img class="current-photo" src="{{ donor.photo_src }}" alt="{{ donor.name }}" />
+        <div style="font-size:12px;color:#888;text-align:center;margin-bottom:8px">Upload a new photo to replace this one.</div>
+      {% endif %}
+      <div class="photo-upload-box" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size:28px">👤</div>
+        <div style="font-weight:600;margin:4px 0 2px;font-size:14px">Click to upload a photo</div>
+        <div style="font-size:12px;color:#888">JPG or PNG · Max 5MB · Will appear as a bubble on campaign pages</div>
+        <img id="photoPreview" class="photo-preview" src="" alt="Preview" />
+      </div>
+      <input type="file" id="photoInput" name="photo" accept="image/*" style="display:none" onchange="previewPhoto(this)" />
+    </div>
+
     <div class="form-group">
       <label>Notes</label>
       <textarea name="notes" placeholder="Internal notes about this donor…">{{ donor.notes if donor else '' }}</textarea>
@@ -50,4 +79,18 @@
     </div>
   </form>
 </div>
+
+<script>
+function previewPhoto(input) {
+  const preview = document.getElementById('photoPreview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.classList.add('visible');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
 {% endblock %}

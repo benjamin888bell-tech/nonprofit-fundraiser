@@ -30,9 +30,13 @@
         <tr>
           <td>
             <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#6c63ff;flex-shrink:0">
-                {{ d.name[0].upper() }}
-              </div>
+              {% if d.photo_src %}
+                <img src="{{ d.photo_src }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #ede9fe;" />
+              {% else %}
+                <div style="width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#6c63ff;flex-shrink:0">
+                  {{ d.name[0].upper() }}
+                </div>
+              {% endif %}
               <strong>{{ d.name }}</strong>
             </div>
           </td>
