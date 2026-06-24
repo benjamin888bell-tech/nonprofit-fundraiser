@@ -126,7 +126,8 @@ def index():
 @app.route("/campaigns")
 def campaigns():
     all_campaigns = Campaign.query.order_by(Campaign.category, Campaign.start_date.desc()).all()
-    return render_template("admin_campaigns.html", campaigns=all_campaigns, categories=CAMPAIGN_CATEGORIES, category_icons=CATEGORY_ICONS)
+    has_samples = any('[SAMPLE]' in c.name for c in all_campaigns)
+    return render_template("admin_campaigns.html", campaigns=all_campaigns, categories=CAMPAIGN_CATEGORIES, category_icons=CATEGORY_ICONS, has_samples=has_samples)
 
 
 @app.route("/campaigns/new", methods=["GET", "POST"])
