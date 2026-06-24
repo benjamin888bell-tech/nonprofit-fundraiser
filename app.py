@@ -403,16 +403,21 @@ def seed_data():
     db.session.flush()
 
     donors = [
-        Donor(name="Alice Johnson", email="alice@example.com", phone="555-0101",
-              photo_url="https://i.pravatar.cc/150?img=47"),
-        Donor(name="Bob Martinez", email="bob@example.com", phone="555-0102",
-              photo_url="https://i.pravatar.cc/150?img=33"),
-        Donor(name="Carol White", email="carol@example.com",
-              photo_url="https://i.pravatar.cc/150?img=5"),
-        Donor(name="David Lee", email="david@example.com", phone="555-0104",
-              photo_url="https://i.pravatar.cc/150?img=11"),
-        Donor(name="Eve Chen", email="eve@example.com",
-              photo_url="https://i.pravatar.cc/150?img=9"),
+        Donor(name="Alice Johnson",    email="alice@example.com",    phone="555-0101", photo_url="https://i.pravatar.cc/150?img=47"),
+        Donor(name="Bob Martinez",     email="bob@example.com",      phone="555-0102", photo_url="https://i.pravatar.cc/150?img=33"),
+        Donor(name="Carol White",      email="carol@example.com",                      photo_url="https://i.pravatar.cc/150?img=5"),
+        Donor(name="David Lee",        email="david@example.com",    phone="555-0104", photo_url="https://i.pravatar.cc/150?img=11"),
+        Donor(name="Eve Chen",         email="eve@example.com",                        photo_url="https://i.pravatar.cc/150?img=9"),
+        Donor(name="Frank Thompson",   email="frank@example.com",    phone="555-0106", photo_url="https://i.pravatar.cc/150?img=52"),
+        Donor(name="Grace Kim",        email="grace@example.com",                      photo_url="https://i.pravatar.cc/150?img=44"),
+        Donor(name="Henry Davis",      email="henry@example.com",    phone="555-0108", photo_url="https://i.pravatar.cc/150?img=15"),
+        Donor(name="Isabella Moore",   email="isabella@example.com",                   photo_url="https://i.pravatar.cc/150?img=25"),
+        Donor(name="James Wilson",     email="james@example.com",    phone="555-0110", photo_url="https://i.pravatar.cc/150?img=60"),
+        Donor(name="Katherine Brown",  email="katherine@example.com",                  photo_url="https://i.pravatar.cc/150?img=21"),
+        Donor(name="Luis Garcia",      email="luis@example.com",     phone="555-0112", photo_url="https://i.pravatar.cc/150?img=57"),
+        Donor(name="Maria Santos",     email="maria@example.com",                      photo_url="https://i.pravatar.cc/150?img=38"),
+        Donor(name="Nathan Clark",     email="nathan@example.com",   phone="555-0114", photo_url="https://i.pravatar.cc/150?img=3"),
+        Donor(name="Olivia Taylor",    email="olivia@example.com",                     photo_url="https://i.pravatar.cc/150?img=29"),
     ]
     db.session.add_all(donors)
     db.session.flush()
@@ -435,6 +440,23 @@ def seed_data():
         # Senior Meals Program — target ~12% of $25,000 = $3,000
         Donation(amount=2000,  date=date(2026, 5, 15), donor_id=donors[0].id, campaign_id=campaigns[3].id, note="Just getting started"),
         Donation(amount=1000,  date=date(2026, 6, 1),  donor_id=donors[2].id, campaign_id=campaigns[3].id),
+        # New donor contributions
+        Donation(amount=1500,  date=date(2026, 2, 8),  donor_id=donors[5].id,  campaign_id=campaigns[0].id),                              # Frank → Building Maintenance
+        Donation(amount=1000,  date=date(2026, 5, 22), donor_id=donors[5].id,  campaign_id=campaigns[3].id, note="Happy to help"),         # Frank → Senior Meals
+        Donation(amount=2000,  date=date(2026, 3, 14), donor_id=donors[6].id,  campaign_id=campaigns[0].id),                              # Grace → Building Maintenance
+        Donation(amount=800,   date=date(2026, 6, 3),  donor_id=donors[6].id,  campaign_id=campaigns[3].id),                              # Grace → Senior Meals
+        Donation(amount=3000,  date=date(2026, 4, 2),  donor_id=donors[7].id,  campaign_id=campaigns[1].id, note="For our community"),     # Henry → Roof
+        Donation(amount=2500,  date=date(2026, 4, 11), donor_id=donors[8].id,  campaign_id=campaigns[1].id),                              # Isabella → Roof
+        Donation(amount=4000,  date=date(2026, 5, 7),  donor_id=donors[9].id,  campaign_id=campaigns[1].id, note="Big believer in this"), # James → Roof
+        Donation(amount=500,   date=date(2026, 5, 19), donor_id=donors[9].id,  campaign_id=campaigns[2].id),                              # James → Youth Scholarship
+        Donation(amount=1500,  date=date(2026, 3, 28), donor_id=donors[10].id, campaign_id=campaigns[1].id),                              # Katherine → Roof
+        Donation(amount=2000,  date=date(2026, 4, 24), donor_id=donors[10].id, campaign_id=campaigns[2].id, note="Education changes lives"),# Katherine → Youth Scholarship
+        Donation(amount=1500,  date=date(2026, 2, 25), donor_id=donors[11].id, campaign_id=campaigns[2].id),                              # Luis → Youth Scholarship
+        Donation(amount=2000,  date=date(2026, 3, 17), donor_id=donors[12].id, campaign_id=campaigns[2].id, note="Con mucho gusto"),       # Maria → Youth Scholarship
+        Donation(amount=1000,  date=date(2026, 4, 30), donor_id=donors[13].id, campaign_id=campaigns[2].id),                              # Nathan → Youth Scholarship
+        Donation(amount=800,   date=date(2026, 6, 5),  donor_id=donors[13].id, campaign_id=campaigns[3].id),                              # Nathan → Senior Meals
+        Donation(amount=500,   date=date(2026, 5, 28), donor_id=donors[14].id, campaign_id=campaigns[3].id),                              # Olivia → Senior Meals
+        Donation(amount=500,   date=date(2026, 6, 10), donor_id=donors[14].id, campaign_id=campaigns[1].id),                              # Olivia → Roof
     ]
     db.session.add_all(donations)
     db.session.commit()
