@@ -100,6 +100,20 @@
     footer { background: #1a1a2e; color: #555; text-align: center; padding: 32px 24px; font-size: 13px; }
     footer a { color: #a78bfa; }
 
+    /* Encouragement badge */
+    .encourage {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
+      padding: 5px 10px; border-radius: 99px; margin-bottom: 14px;
+      display: inline-block;
+    }
+    .enc-spark  { background: #fef9c3; color: #854d0e; }
+    .enc-grow   { background: #dbeafe; color: #1e40af; }
+    .enc-climb  { background: #fde8d0; color: #9a3412; }
+    .enc-halfway{ background: #ede9fe; color: #5b21b6; }
+    .enc-almost { background: #dcfce7; color: #166534; }
+    .enc-final  { background: #bbf7d0; color: #14532d; }
+    .enc-done   { background: #fef08a; color: #713f12; }
+
     @media (max-width: 700px) {
       .hero h1 { font-size: 30px; }
       .charts-row { grid-template-columns: 1fr; }
@@ -163,6 +177,21 @@
             </div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:{{ c.progress_pct }}%"></div></div>
             <div class="progress-goal">Goal: ${{ "{:,.0f}".format(c.goal) }}</div>
+            {% if c.progress_pct >= 100 %}
+              <div class="encourage enc-done">🎉 Goal reached! Thank you, amazing donors!</div>
+            {% elif c.progress_pct >= 90 %}
+              <div class="encourage enc-final">🔥 Almost there — one final push!</div>
+            {% elif c.progress_pct >= 75 %}
+              <div class="encourage enc-almost">💪 So close! The finish line is in sight.</div>
+            {% elif c.progress_pct >= 50 %}
+              <div class="encourage enc-halfway">🚀 Halfway there! Keep the momentum going!</div>
+            {% elif c.progress_pct >= 25 %}
+              <div class="encourage enc-climb">⭐ Building momentum — every gift counts!</div>
+            {% elif c.progress_pct >= 10 %}
+              <div class="encourage enc-grow">🌱 Just getting started — be an early supporter!</div>
+            {% else %}
+              <div class="encourage enc-spark">✨ Be one of the first to give!</div>
+            {% endif %}
             <div class="card-meta">
               <div class="meta-item"><strong>{{ c.donor_count }}</strong> donors</div>
               <div class="meta-item"><strong>{{ c.donations|length }}</strong> gifts</div>
@@ -202,6 +231,21 @@
             </div>
             <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:{{ c.progress_pct }}%"></div></div>
             <div class="progress-goal">Goal: ${{ "{:,.0f}".format(c.goal) }}</div>
+            {% if c.progress_pct >= 100 %}
+              <div class="encourage enc-done">🎉 Goal reached! Thank you, amazing donors!</div>
+            {% elif c.progress_pct >= 90 %}
+              <div class="encourage enc-final">🔥 Almost there — one final push!</div>
+            {% elif c.progress_pct >= 75 %}
+              <div class="encourage enc-almost">💪 So close! The finish line is in sight.</div>
+            {% elif c.progress_pct >= 50 %}
+              <div class="encourage enc-halfway">🚀 Halfway there! Keep the momentum going!</div>
+            {% elif c.progress_pct >= 25 %}
+              <div class="encourage enc-climb">⭐ Building momentum — every gift counts!</div>
+            {% elif c.progress_pct >= 10 %}
+              <div class="encourage enc-grow">🌱 Just getting started — be an early supporter!</div>
+            {% else %}
+              <div class="encourage enc-spark">✨ Be one of the first to give!</div>
+            {% endif %}
             <div class="card-meta">
               <div class="meta-item"><strong>{{ c.donor_count }}</strong> donors</div>
               <div class="meta-item"><strong>{{ c.donations|length }}</strong> gifts</div>
